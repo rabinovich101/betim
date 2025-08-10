@@ -14,7 +14,9 @@
       "Bash(rm:*)",
       "Bash(npm uninstall:*)",
       "mcp__playwright__browser_evaluate",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "mcp__playwright__browser_type",
+      "mcp__playwright__browser_select_option"
     ],
     "deny": []
   }

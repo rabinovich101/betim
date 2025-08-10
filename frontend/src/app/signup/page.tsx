@@ -209,7 +209,7 @@ export default function SignUp() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a1a2e] via-[#0f2027] to-[#1a1a2e] flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-[448px]">
         {/* Logo */}
         <div className="text-center mb-6">
           <div className="inline-flex items-center gap-2 mb-3">
@@ -222,8 +222,8 @@ export default function SignUp() {
         </div>
 
         {/* Form Card */}
-        <div className="bg-[#1a2c38]/60 backdrop-blur-xl rounded-2xl p-6 border border-white/10 shadow-2xl">
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="bg-[#1a2c38]/60 backdrop-blur-xl rounded-2xl p-7 border border-white/10 shadow-2xl">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {/* Name Fields */}
             <div className="grid grid-cols-2 gap-3">
               <div className="relative">
@@ -241,7 +241,7 @@ export default function SignUp() {
                     onChange={handleInputChange}
                     onFocus={() => setFocusedField('fullName')}
                     onBlur={() => setFocusedField(null)}
-                    className={`w-full pl-10 pr-3 py-2.5 bg-[#232438] border ${errors.fullName ? 'border-red-500' : 'border-white/10'} rounded-lg text-white placeholder-[#6a6a7e] focus:outline-none focus:border-[#00ff87] transition-all text-sm`}
+                    className={`w-full pl-10 pr-3 py-4 bg-[#232438] border ${errors.fullName ? 'border-red-500' : 'border-white/10'} rounded-lg text-white placeholder-[#6a6a7e] focus:outline-none focus:border-[#00ff87] transition-all`}
                     placeholder="Full Name"
                   />
                 </div>
@@ -265,7 +265,7 @@ export default function SignUp() {
                     onChange={handleInputChange}
                     onFocus={() => setFocusedField('username')}
                     onBlur={() => setFocusedField(null)}
-                    className={`w-full pl-10 pr-3 py-2.5 bg-[#232438] border ${errors.username ? 'border-red-500' : 'border-white/10'} rounded-lg text-white placeholder-[#6a6a7e] focus:outline-none focus:border-[#00ff87] transition-all text-sm`}
+                    className={`w-full pl-10 pr-3 py-4 bg-[#232438] border ${errors.username ? 'border-red-500' : 'border-white/10'} rounded-lg text-white placeholder-[#6a6a7e] focus:outline-none focus:border-[#00ff87] transition-all`}
                     placeholder="Username"
                   />
                 </div>
@@ -289,7 +289,7 @@ export default function SignUp() {
                   onChange={handleInputChange}
                   onFocus={() => setFocusedField('email')}
                   onBlur={() => setFocusedField(null)}
-                  className={`w-full pl-10 pr-3 py-2.5 bg-[#232438] border ${errors.email ? 'border-red-500' : 'border-white/10'} rounded-lg text-white placeholder-[#6a6a7e] focus:outline-none focus:border-[#00ff87] transition-all text-sm`}
+                  className={`w-full pl-10 pr-3 py-4 bg-[#232438] border ${errors.email ? 'border-red-500' : 'border-white/10'} rounded-lg text-white placeholder-[#6a6a7e] focus:outline-none focus:border-[#00ff87] transition-all`}
                   placeholder="Email Address"
                 />
               </div>
@@ -313,7 +313,7 @@ export default function SignUp() {
                     onChange={handleInputChange}
                     onFocus={() => setFocusedField('password')}
                     onBlur={() => setFocusedField(null)}
-                    className={`w-full pl-10 pr-10 py-2.5 bg-[#232438] border ${errors.password ? 'border-red-500' : 'border-white/10'} rounded-lg text-white placeholder-[#6a6a7e] focus:outline-none focus:border-[#00ff87] transition-all text-sm`}
+                    className={`w-full pl-10 pr-10 py-4 bg-[#232438] border ${errors.password ? 'border-red-500' : 'border-white/10'} rounded-lg text-white placeholder-[#6a6a7e] focus:outline-none focus:border-[#00ff87] transition-all`}
                     placeholder="Password"
                   />
                   <button
@@ -354,7 +354,7 @@ export default function SignUp() {
                     onChange={handleInputChange}
                     onFocus={() => setFocusedField('confirmPassword')}
                     onBlur={() => setFocusedField(null)}
-                    className={`w-full pl-10 pr-10 py-2.5 bg-[#232438] border ${errors.confirmPassword ? 'border-red-500' : 'border-white/10'} rounded-lg text-white placeholder-[#6a6a7e] focus:outline-none focus:border-[#00ff87] transition-all text-sm`}
+                    className={`w-full pl-10 pr-10 py-4 bg-[#232438] border ${errors.confirmPassword ? 'border-red-500' : 'border-white/10'} rounded-lg text-white placeholder-[#6a6a7e] focus:outline-none focus:border-[#00ff87] transition-all`}
                     placeholder="Confirm"
                   />
                   <button
@@ -424,7 +424,7 @@ export default function SignUp() {
                     onFocus={() => setFocusedField('dateOfBirth')}
                     onBlur={() => setFocusedField(null)}
                     max={new Date().toISOString().split('T')[0]}
-                    className={`w-full pl-10 pr-2 py-2.5 bg-[#232438] border ${errors.dateOfBirth ? 'border-red-500' : 'border-white/10'} rounded-lg text-white placeholder-[#6a6a7e] focus:outline-none focus:border-[#00ff87] transition-all text-sm`}
+                    className={`w-full pl-10 pr-2 py-4 bg-[#232438] border ${errors.dateOfBirth ? 'border-red-500' : 'border-white/10'} rounded-lg text-white placeholder-[#6a6a7e] focus:outline-none focus:border-[#00ff87] transition-all text-xs`}
                   />
                 </div>
                 {errors.dateOfBirth && <p className="absolute -bottom-5 left-0 text-xs text-red-500">{errors.dateOfBirth}</p>}
@@ -445,7 +445,7 @@ export default function SignUp() {
                     onChange={handleInputChange}
                     onFocus={() => setFocusedField('country')}
                     onBlur={() => setFocusedField(null)}
-                    className={`w-full pl-10 pr-2 py-2.5 bg-[#232438] border ${errors.country ? 'border-red-500' : 'border-white/10'} rounded-lg text-white focus:outline-none focus:border-[#00ff87] transition-all text-sm appearance-none`}
+                    className={`w-full pl-10 pr-2 py-4 bg-[#232438] border ${errors.country ? 'border-red-500' : 'border-white/10'} rounded-lg text-white focus:outline-none focus:border-[#00ff87] transition-all appearance-none`}
                   >
                     <option value="">Country</option>
                     {countries.map(country => (
@@ -467,7 +467,7 @@ export default function SignUp() {
                       onChange={handleInputChange}
                       onFocus={() => setFocusedField('state')}
                       onBlur={() => setFocusedField(null)}
-                      className={`w-full px-3 py-2.5 bg-[#232438] border ${errors.state ? 'border-red-500' : 'border-white/10'} rounded-lg text-white focus:outline-none focus:border-[#00ff87] transition-all text-sm appearance-none`}
+                      className={`w-full px-3 py-4 bg-[#232438] border ${errors.state ? 'border-red-500' : 'border-white/10'} rounded-lg text-white focus:outline-none focus:border-[#00ff87] transition-all appearance-none`}
                     >
                       <option value="">State</option>
                       {usStates.map(state => (
@@ -498,7 +498,7 @@ export default function SignUp() {
                       onChange={handleInputChange}
                       onFocus={() => setFocusedField('promoCode')}
                       onBlur={() => setFocusedField(null)}
-                      className="w-full pl-10 pr-2 py-2.5 bg-[#232438] border border-white/10 rounded-lg text-white placeholder-[#6a6a7e] focus:outline-none focus:border-[#00ff87] transition-all text-sm"
+                      className="w-full pl-10 pr-2 py-3 bg-[#232438] border border-white/10 rounded-lg text-white placeholder-[#6a6a7e] focus:outline-none focus:border-[#00ff87] transition-all text-sm"
                       placeholder="Promo"
                     />
                   </div>
@@ -545,7 +545,7 @@ export default function SignUp() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3 bg-gradient-to-r from-[#00ff87] to-[#00d68f] text-[#0a1a1f] font-bold rounded-xl hover:shadow-lg hover:shadow-[#00ff87]/30 transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3.5 bg-gradient-to-r from-[#00ff87] to-[#00d68f] text-[#0a1a1f] font-bold rounded-xl hover:shadow-lg hover:shadow-[#00ff87]/30 transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <div className="flex items-center justify-center gap-2">
