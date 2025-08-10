@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useBets } from '@/contexts/BetContext';
 
 interface Match {
   id: string;
@@ -18,6 +19,7 @@ interface Match {
 export default function UpcomingLive() {
   const [displayCount, setDisplayCount] = useState(5);
   const [isLoading, setIsLoading] = useState(false);
+  const { addBet, isBetSelected } = useBets();
 
   const allMatches: Match[] = [
     {
@@ -129,6 +131,21 @@ export default function UpcomingLive() {
     }, 500);
   };
 
+  const handleBetClick = (match: Match, type: 'home' | 'draw' | 'away') => {
+    const teams = match.teams.split('\n');
+    const selection = type === 'home' ? teams[0] : type === 'away' ? teams[1] : 'Draw';
+    
+    addBet({
+      id: `${match.id}-${type}`,
+      matchId: match.id,
+      selection,
+      type,
+      odds: match.odds[type],
+      teams: match.teams.replace('\n', ' vs '),
+      sport: match.sport
+    });
+  };
+
   const getSportColor = (sport: string) => {
     switch(sport) {
       case 'football': return 'from-[#2563eb] to-[#1e40af]';
@@ -175,14 +192,35 @@ export default function UpcomingLive() {
 
                 {/* Odds */}
                 <div className="flex gap-3">
-                  <button className="px-4 py-2 bg-[#232438] rounded-lg border border-white/10 hover:border-[#00ff87] hover:bg-[#2a2b3f] transition-all duration-200 min-w-[65px]">
-                    <span className="text-white font-bold">{match.odds.home.toFixed(2)}</span>
+                  <button 
+                    onClick={() => handleBetClick(match, 'home')}
+                    className={`px-4 py-2 rounded-lg border transition-all duration-200 min-w-[65px] ${
+                      isBetSelected(match.id, 'home') 
+                        ? 'bg-[#00ff87] border-[#00ff87] text-[#0a1a1f]' 
+                        : 'bg-[#232438] border-white/10 hover:border-[#00ff87] hover:bg-[#2a2b3f] text-white'
+                    }`}
+                  >
+                    <span className="font-bold">{match.odds.home.toFixed(2)}</span>
                   </button>
-                  <button className="px-4 py-2 bg-[#232438] rounded-lg border border-white/10 hover:border-[#00ff87] hover:bg-[#2a2b3f] transition-all duration-200 min-w-[65px]">
-                    <span className="text-white font-bold">{match.odds.draw.toFixed(2)}</span>
+                  <button 
+                    onClick={() => handleBetClick(match, 'draw')}
+                    className={`px-4 py-2 rounded-lg border transition-all duration-200 min-w-[65px] ${
+                      isBetSelected(match.id, 'draw') 
+                        ? 'bg-[#00ff87] border-[#00ff87] text-[#0a1a1f]' 
+                        : 'bg-[#232438] border-white/10 hover:border-[#00ff87] hover:bg-[#2a2b3f] text-white'
+                    }`}
+                  >
+                    <span className="font-bold">{match.odds.draw.toFixed(2)}</span>
                   </button>
-                  <button className="px-4 py-2 bg-[#232438] rounded-lg border border-white/10 hover:border-[#00ff87] hover:bg-[#2a2b3f] transition-all duration-200 min-w-[65px]">
-                    <span className="text-white font-bold">{match.odds.away.toFixed(2)}</span>
+                  <button 
+                    onClick={() => handleBetClick(match, 'away')}
+                    className={`px-4 py-2 rounded-lg border transition-all duration-200 min-w-[65px] ${
+                      isBetSelected(match.id, 'away') 
+                        ? 'bg-[#00ff87] border-[#00ff87] text-[#0a1a1f]' 
+                        : 'bg-[#232438] border-white/10 hover:border-[#00ff87] hover:bg-[#2a2b3f] text-white'
+                    }`}
+                  >
+                    <span className="font-bold">{match.odds.away.toFixed(2)}</span>
                   </button>
                 </div>
               </div>

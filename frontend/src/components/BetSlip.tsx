@@ -1,18 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-
-interface Bet {
-  id: string;
-  selection: string;
-  odds: number;
-}
+import { useState } from 'react';
+import { useBets } from '@/contexts/BetContext';
 
 export default function BetSlip() {
-  const [bets, setBets] = useState<Bet[]>([
-    { id: '1', selection: 'Liverpool', odds: 1.90 },
-    { id: '2', selection: 'Over 2.5', odds: 1.80 },
-  ]);
+  const { bets, removeBet, clearBets } = useBets();
   const [stake, setStake] = useState<string>('10');
   const [isPlaceBetInGame, setIsPlaceBetInGame] = useState(true);
   const [isVisible, setIsVisible] = useState(true);
@@ -21,12 +13,8 @@ export default function BetSlip() {
   const totalOdds = bets.reduce((acc, bet) => acc * bet.odds, 1);
   const potentialPayout = parseFloat(stake || '0') * totalOdds;
 
-  const removeBet = (id: string) => {
-    setBets(bets.filter(bet => bet.id !== id));
-  };
-
   const clearAll = () => {
-    setBets([]);
+    clearBets();
     setStake('10');
   };
 
@@ -88,19 +76,22 @@ export default function BetSlip() {
                 key={bet.id}
                 className="bg-[#232438] rounded-lg p-3 border border-white/5 hover:border-white/10 transition-all"
               >
-                <div className="flex items-center justify-between">
-                  <span className="text-white font-medium">{bet.selection}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[#00ff87] font-bold">{bet.odds.toFixed(2)}</span>
-                    <button
-                      onClick={() => removeBet(bet.id)}
-                      className="text-[#a0a0b8] hover:text-[#ff4757] transition-colors"
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-white font-medium">{bet.selection}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[#00ff87] font-bold">{bet.odds.toFixed(2)}</span>
+                      <button
+                        onClick={() => removeBet(bet.id)}
+                        className="text-[#a0a0b8] hover:text-[#ff4757] transition-colors"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
+                  <div className="text-xs text-[#a0a0b8]">{bet.teams}</div>
                 </div>
               </div>
             ))}
