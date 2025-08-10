@@ -43,13 +43,13 @@ The frontend is a fresh Next.js installation with:
 
 ## IMPORTANT: UI/UX Development Rules
 
-1. **ALWAYS read `design_reference.md` before creating or modifying any UI components**
-2. Every UI element must follow the design system specified in design_reference.md
-3. When uncertain about styling, check design_reference.md first
+1. **ALWAYS read `design_refernce.md` before creating or modifying any UI components**
+2. Every UI element must follow the design system specified in design_refernce.md
+3. When uncertain about styling, check design_refernce.md first
 4. Use the exact color codes, spacing, and typography defined in the reference
 
 ## Workflow for UI Tasks
-- First: Read design_reference.md
+- First: Read design_refernce.md
 - Second: Understand the component requirements  
 - Third: Implement following the design system
 - Fourth: Ensure responsive behavior matches the specs
@@ -109,6 +109,6 @@ The backend folder exists but has no implementation yet.
 - Avoid using browser-specific APIs
 - Test for feature availability before using
   /components  - All React/JS components
-  /styles      - CSS files following design_reference.md
+  /styles      - CSS files following design_refernce.md
   /assets      - Images and icons
   
