@@ -1,0 +1,418 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum UserRole {
+  USER
+  ADMIN
+  MODERATOR
+}
+
+enum KycStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum EventStatus {
+  UPCOMING
+  LIVE
+  FINISHED
+  CANCELLED
+  POSTPONED
+}
+
+enum MarketType {
+  MATCH_WINNER    // 1X2
+  OVER_UNDER      // Total goals/points
+  BOTH_TEAMS_SCORE
+  HANDICAP
+  CORRECT_SCORE
+  FIRST_GOAL
+  HALF_TIME_RESULT
+  DOUBLE_CHANCE
+}
+
+enum BetStatus {
+  PENDING
+  WON
+  LOST
+  VOID
+  CASHOUT
+}
+
+enum BetType {
+  SINGLE
+  ACCUMULATOR
+  SYSTEM
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  BET_PLACED
+  BET_WON
+  BET_REFUND
+  BONUS
+  CASHOUT
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+// Models
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  username        String    @unique
+  hashedPassword  String
+  fullName        String
+  dateOfBirth     DateTime
+  country         String
+  state           String?
+  phoneNumber     String?
+  
+  // Account status
+  role            UserRole  @default(USER)
+  isActive        Boolean   @default(true)
+  isVerified      Boolean   @default(false)
+  kycStatus       KycStatus @default(PENDING)
+  emailVerified   DateTime?
+  
+  // Betting account
+  balance         Decimal   @default(0) @db.Decimal(10, 2)
+  bonusBalance    Decimal   @default(0) @db.Decimal(10, 2)
+  totalWagered    Decimal   @default(0) @db.Decimal(10, 2)
+  totalWon        Decimal   @default(0) @db.Decimal(10, 2)
+  
+  // Settings
+  currency        String    @default("USD")
+  timezone        String    @default("UTC")
+  twoFactorEnabled Boolean  @default(false)
+  twoFactorSecret String?
+  
+  // Timestamps
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  lastLoginAt     DateTime?
+  
+  // Relations
+  bets            Bet[]
+  betSlips        BetSlip[]
+  transactions    Transaction[]
+  sessions        Session[]
+  notifications   Notification[]
+  favoriteTeams   FavoriteTeam[]
+  promoCode       PromoCode?     @relation(fields: [promoCodeId], references: [id])
+  promoCodeId     String?
+  
+  @@index([email])
+  @@index([username])
+  @@index([country, state])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  token        String   @unique
+  userAgent    String?
+  ipAddress    String?
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([token])
+  @@index([userId])
+}
+
+model Sport {
+  id           String    @id @default(cuid())
+  name         String    @unique
+  slug         String    @unique
+  icon         String?
+  displayOrder Int       @default(0)
+  isActive     Boolean   @default(true)
+  
+  events       Event[]
+  
+  @@index([slug])
+}
+
+model Team {
+  id           String    @id @default(cuid())
+  name         String
+  shortName    String?
+  logo         String?
+  country      String?
+  
+  homeEvents   Event[]   @relation("HomeTeam")
+  awayEvents   Event[]   @relation("AwayTeam")
+  favoriteBy   FavoriteTeam[]
+  
+  @@index([name])
+}
+
+model Event {
+  id           String       @id @default(cuid())
+  sportId      String
+  homeTeamId   String
+  awayTeamId   String
+  
+  title        String?      // Optional custom title
+  startTime    DateTime
+  endTime      DateTime?
+  status       EventStatus  @default(UPCOMING)
+  
+  // Live data
+  homeScore    Int?
+  awayScore    Int?
+  currentTime  Int?         // Current minute for football
+  period       String?      // Half-time, Full-time, etc.
+  
+  // Metadata
+  venue        String?
+  competition  String?      // League/Tournament name
+  round        String?      // Round/Week number
+  isLive       Boolean      @default(false)
+  isFeatured   Boolean      @default(false)
+  
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  
+  // Relations
+  sport        Sport        @relation(fields: [sportId], references: [id])
+  homeTeam     Team         @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeam     Team         @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  markets      Market[]
+  bets         Bet[]
+  
+  @@index([sportId])
+  @@index([startTime])
+  @@index([status])
+  @@index([isLive])
+}
+
+model Market {
+  id           String      @id @default(cuid())
+  eventId      String
+  type         MarketType
+  name         String      // Display name
+  
+  // Market state
+  isActive     Boolean     @default(true)
+  isSuspended  Boolean     @default(false)
+  
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  
+  // Relations
+  event        Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  odds         Odds[]
+  bets         Bet[]
+  
+  @@unique([eventId, type])
+  @@index([eventId])
+  @@index([type])
+}
+
+model Odds {
+  id           String      @id @default(cuid())
+  marketId     String
+  selection    String      // e.g., "Home", "Away", "Draw", "Over 2.5", etc.
+  value        Decimal     @db.Decimal(5, 2)
+  
+  // Odds movement tracking
+  previousValue Decimal?   @db.Decimal(5, 2)
+  isActive     Boolean     @default(true)
+  
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  
+  // Relations
+  market       Market      @relation(fields: [marketId], references: [id], onDelete: Cascade)
+  bets         Bet[]
+  
+  @@index([marketId])
+  @@index([selection])
+}
+
+model Bet {
+  id           String      @id @default(cuid())
+  userId       String
+  eventId      String
+  marketId     String
+  oddsId       String
+  betSlipId    String?
+  
+  // Bet details
+  stake        Decimal     @db.Decimal(10, 2)
+  odds         Decimal     @db.Decimal(5, 2)  // Odds at time of bet
+  selection    String      // What was selected
+  potentialWin Decimal     @db.Decimal(10, 2)
+  
+  // Status
+  status       BetStatus   @default(PENDING)
+  settledAt    DateTime?
+  winAmount    Decimal?    @db.Decimal(10, 2)
+  
+  // Cash out
+  cashoutAvailable Boolean @default(false)
+  cashoutValue     Decimal? @db.Decimal(10, 2)
+  cashedOutAt      DateTime?
+  
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  
+  // Relations
+  user         User        @relation(fields: [userId], references: [id])
+  event        Event       @relation(fields: [eventId], references: [id])
+  market       Market      @relation(fields: [marketId], references: [id])
+  oddsRelation Odds        @relation(fields: [oddsId], references: [id])
+  betSlip      BetSlip?    @relation(fields: [betSlipId], references: [id])
+  
+  @@index([userId])
+  @@index([eventId])
+  @@index([status])
+  @@index([betSlipId])
+}
+
+model BetSlip {
+  id           String      @id @default(cuid())
+  userId       String
+  
+  // Bet slip details
+  type         BetType     @default(SINGLE)
+  totalStake   Decimal     @db.Decimal(10, 2)
+  totalOdds    Decimal     @db.Decimal(8, 2)
+  potentialWin Decimal     @db.Decimal(10, 2)
+  
+  // Status
+  status       BetStatus   @default(PENDING)
+  settledAt    DateTime?
+  winAmount    Decimal?    @db.Decimal(10, 2)
+  
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  
+  // Relations
+  user         User        @relation(fields: [userId], references: [id])
+  bets         Bet[]
+  
+  @@index([userId])
+  @@index([status])
+}
+
+model Transaction {
+  id           String              @id @default(cuid())
+  userId       String
+  
+  // Transaction details
+  type         TransactionType
+  amount       Decimal             @db.Decimal(10, 2)
+  currency     String              @default("USD")
+  status       TransactionStatus   @default(PENDING)
+  
+  // Payment details
+  paymentMethod String?
+  reference     String?            @unique
+  externalId    String?            // Payment provider reference
+  
+  // Metadata
+  description   String?
+  metadata      Json?
+  
+  // Timestamps
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  completedAt   DateTime?
+  
+  // Relations
+  user          User               @relation(fields: [userId], references: [id])
+  
+  @@index([userId])
+  @@index([type])
+  @@index([status])
+  @@index([reference])
+}
+
+model PromoCode {
+  id            String      @id @default(cuid())
+  code          String      @unique
+  description   String?
+  
+  // Promo details
+  discountType  String      // PERCENTAGE, FIXED_AMOUNT, FREE_BET
+  discountValue Decimal     @db.Decimal(10, 2)
+  minDeposit    Decimal?    @db.Decimal(10, 2)
+  maxDiscount   Decimal?    @db.Decimal(10, 2)
+  
+  // Usage limits
+  usageLimit    Int?
+  usageCount    Int         @default(0)
+  userLimit     Int         @default(1) // Per user limit
+  
+  // Validity
+  validFrom     DateTime    @default(now())
+  validUntil    DateTime?
+  isActive      Boolean     @default(true)
+  
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  
+  // Relations
+  users         User[]
+  
+  @@index([code])
+  @@index([isActive])
+}
+
+model Notification {
+  id           String      @id @default(cuid())
+  userId       String
+  
+  title        String
+  message      String
+  type         String      // BET_WON, BET_LOST, DEPOSIT_SUCCESS, etc.
+  
+  isRead       Boolean     @default(false)
+  readAt       DateTime?
+  
+  metadata     Json?       // Additional data
+  
+  createdAt    DateTime    @default(now())
+  
+  // Relations
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([isRead])
+}
+
+model FavoriteTeam {
+  id           String      @id @default(cuid())
+  userId       String
+  teamId       String
+  
+  createdAt    DateTime    @default(now())
+  
+  // Relations
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team         Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, teamId])
+  @@index([userId])
+}

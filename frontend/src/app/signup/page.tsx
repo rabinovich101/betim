@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import LoadingLink from '@/components/LoadingLink';
 
 export default function SignUp() {
   const [formData, setFormData] = useState({
@@ -560,9 +561,9 @@ export default function SignUp() {
             {/* Sign In Link */}
             <p className="text-center text-sm text-[#a0a0b8]">
               Already have an account?{' '}
-              <Link href="/login" className="text-[#00ff87] hover:underline font-medium">
+              <LoadingLink href="/login" className="text-[#00ff87] hover:underline font-medium">
                 Sign In
-              </Link>
+              </LoadingLink>
             </p>
           </form>
         </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+import LoadingLink from './LoadingLink';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -45,12 +45,12 @@ export default function Navbar() {
           {/* Right Side Actions */}
           <div className="flex items-center space-x-4">
             {/* Auth Buttons */}
-            <Link href="/login" className="hidden md:block px-4 py-2 text-[#00ff87] border border-[#00ff87] rounded-lg hover:bg-[#00ff87] hover:text-[#1a1a2e] transition-all duration-200 font-semibold">
+            <LoadingLink href="/login" className="hidden md:block px-4 py-2 text-[#00ff87] border border-[#00ff87] rounded-lg hover:bg-[#00ff87] hover:text-[#1a1a2e] transition-all duration-200 font-semibold">
               Log In
-            </Link>
-            <Link href="/signup" className="hidden md:block px-4 py-2 bg-[#00ff87] text-[#1a1a2e] rounded-lg hover:bg-[#00d68f] transition-all duration-200 font-semibold">
+            </LoadingLink>
+            <LoadingLink href="/signup" className="hidden md:block px-4 py-2 bg-[#00ff87] text-[#1a1a2e] rounded-lg hover:bg-[#00d68f] transition-all duration-200 font-semibold">
               Sign Up
-            </Link>
+            </LoadingLink>
 
             {/* Mobile Menu Button */}
             <button
@@ -92,12 +92,12 @@ export default function Navbar() {
                 Promotions
               </a>
               <div className="flex items-center space-x-2 pt-3 border-t border-[rgba(255,255,255,0.05)]">
-                <Link href="/login" className="flex-1 px-4 py-2 text-[#00ff87] border border-[#00ff87] rounded-lg hover:bg-[#00ff87] hover:text-[#1a1a2e] transition-all duration-200 font-semibold text-center">
+                <LoadingLink href="/login" className="flex-1 px-4 py-2 text-[#00ff87] border border-[#00ff87] rounded-lg hover:bg-[#00ff87] hover:text-[#1a1a2e] transition-all duration-200 font-semibold text-center">
                   Log In
-                </Link>
-                <Link href="/signup" className="flex-1 px-4 py-2 bg-[#00ff87] text-[#1a1a2e] rounded-lg hover:bg-[#00d68f] transition-all duration-200 font-semibold text-center">
+                </LoadingLink>
+                <LoadingLink href="/signup" className="flex-1 px-4 py-2 bg-[#00ff87] text-[#1a1a2e] rounded-lg hover:bg-[#00d68f] transition-all duration-200 font-semibold text-center">
                   Sign Up
-                </Link>
+                </LoadingLink>
               </div>
             </div>
           </div>

@@ -29,3 +29,16 @@ body {
   writing-mode: vertical-rl;
   text-orientation: mixed;
 }
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 1.5s infinite;
+}

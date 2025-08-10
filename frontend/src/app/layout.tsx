@@ -5,6 +5,10 @@ import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import BetSlip from "@/components/BetSlip";
 import { BetProvider } from "@/contexts/BetContext";
+import { LoadingProvider } from "@/contexts/LoadingContext";
+import { NavigationEvents } from "@/components/NavigationEvents";
+import { Suspense } from "react";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,14 +36,21 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#1a1a2e] text-white`}
       >
         <BetProvider>
-          <Navbar />
-          <div className="flex min-h-screen pt-16">
-            <Sidebar />
-            <main className="flex-1 lg:ml-0 xl:mr-80">
-              {children}
-            </main>
-            <BetSlip />
-          </div>
+          <LoadingProvider>
+            <Suspense fallback={<LoadingSpinner />}>
+              <NavigationEvents />
+            </Suspense>
+            <Navbar />
+            <div className="flex min-h-screen pt-16">
+              <Sidebar />
+              <main className="flex-1 lg:ml-0 xl:mr-80">
+                <Suspense fallback={<LoadingSpinner />}>
+                  {children}
+                </Suspense>
+              </main>
+              <BetSlip />
+            </div>
+          </LoadingProvider>
         </BetProvider>
       </body>
     </html>
