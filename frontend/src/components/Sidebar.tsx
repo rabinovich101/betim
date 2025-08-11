@@ -63,23 +63,39 @@ const Sidebar = () => {
 
   // Main navigation sections
   const navItems: NavItem[] = [
+    { id: 'sports', label: 'Sports', icon: '⚽', href: '/sports' },
+    { id: 'live', label: 'Live Betting', icon: '🔴', href: '/live', badge: liveCount > 0 ? String(liveCount) : undefined, highlight: liveCount > 0 },
     { id: 'casino', label: 'Casino', icon: '🎰', href: '/casino' },
     { id: 'live-casino', label: 'Live Casino', icon: '🎲', href: '/live-casino' },
-    { id: 'sports', label: 'Sports', icon: '⚽', href: '/sports' },
+    { id: 'esports', label: 'Esports', icon: '🎮', href: '/esports' },
+    { id: 'virtual', label: 'Virtual Sports', icon: '🏃', href: '/virtual-sports' },
   ];
 
-  // GET YOUR GOODIES section
+  // Quick Links section
+  const quickLinks: NavItem[] = [
+    { id: 'specials', label: "Today's Specials", icon: '⭐', href: '/specials' },
+    { id: 'favorites', label: 'My Favorites', icon: '❤️', href: '/favorites' },
+    { id: 'bet-builder', label: 'Bet Builder', icon: '🛠️', href: '/bet-builder' },
+    { id: 'statistics', label: 'Statistics', icon: '📊', href: '/statistics' },
+    { id: 'results', label: 'Results', icon: '📈', href: '/results' },
+  ];
+
+  // Promotions section
   const promotionalItems: NavItem[] = [
-    { id: 'promotions', label: 'Promotions', icon: '🎁', href: '/promotions' },
-    { id: 'btc-weekly', label: '1 BTC Weekly Tournament', icon: '🪙', href: '/tournaments/btc-weekly', badge: '06:04:52:17' },
-    { id: 'daily-race', label: '1k Daily Race', icon: '🏆', href: '/tournaments/daily-race', badge: '04:52:17' },
-    { id: 'betim-club', label: 'Betim Club', icon: '💎', href: '/club' },
+    { id: 'welcome', label: 'Welcome Bonus', icon: '🎉', href: '/promotions/welcome' },
+    { id: 'daily-rewards', label: 'Daily Rewards', icon: '🎁', href: '/promotions/daily' },
+    { id: 'vip', label: 'VIP Program', icon: '👑', href: '/vip' },
+    { id: 'tournaments', label: 'Tournaments', icon: '🏆', href: '/tournaments' },
+    { id: 'refer', label: 'Refer a Friend', icon: '👥', href: '/refer' },
   ];
 
-  // WE ARE HERE FOR YOU section
-  const supportItems = [
-    { id: 'support', label: 'Support Chat', icon: '💬' },
-    { id: 'download', label: 'Download our App', icon: '📱' },
+  // Account & Tools section
+  const accountTools: NavItem[] = [
+    { id: 'my-bets', label: 'My Bets', icon: '📝', href: '/account/bets' },
+    { id: 'cash-out', label: 'Cash Out', icon: '💸', href: '/account/cashout' },
+    { id: 'deposit', label: 'Deposit', icon: '💳', href: '/account/deposit' },
+    { id: 'withdraw', label: 'Withdraw', icon: '🏦', href: '/account/withdraw' },
+    { id: 'responsible', label: 'Responsible Gaming', icon: '🛡️', href: '/responsible-gaming' },
   ];
 
   const sportsCategories: SportItem[] = [
@@ -127,6 +143,7 @@ const Sidebar = () => {
         w-56
         lg:translate-x-0 lg:sticky lg:top-16
         shadow-2xl lg:shadow-xl
+        overflow-y-auto
       `}>
         {/* Mobile close button */}
         {!isCollapsed && (
@@ -147,17 +164,6 @@ const Sidebar = () => {
           {/* Show sports categories if on sports page, otherwise show main nav */}
           {isOnSportsPage ? (
             <div className="space-y-1">
-              {/* Back to main nav button */}
-              <Link
-                href="/"
-                className="flex items-center gap-2 px-4 py-2 mb-4 text-[#a0a0b8] hover:text-white transition-colors"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                <span className="text-sm font-medium">Back to Main</span>
-              </Link>
-              
               {/* Sports Title */}
               <h2 className="text-lg font-bold text-white px-4 py-2 mb-2">Sports Categories</h2>
               
@@ -234,10 +240,15 @@ const Sidebar = () => {
                     )}
                   </span>
                   
-                  {/* Label - Always visible on desktop, hidden on mobile when collapsed */}
+                  {/* Label and badge - Always visible on desktop, hidden on mobile when collapsed */}
                   <span className={`font-medium tracking-wide ${isCollapsed ? 'hidden lg:inline' : ''}`}>
                     {item.label}
                   </span>
+                  {item.badge && (
+                    <span className={`ml-auto bg-gradient-to-r from-[#ff4757] to-[#ff6b7a] text-white text-xs px-2 py-1 rounded-full font-bold shadow-lg ${isCollapsed ? 'hidden lg:inline-block' : ''}`}>
+                      {item.badge}
+                    </span>
+                  )}
                   
                   {/* Hover glow effect */}
                   {!isActive(item.href) && (
@@ -245,6 +256,72 @@ const Sidebar = () => {
                   )}
                 </Link>
               ))}
+            </div>
+          )}
+
+          {/* Separator */}
+          <div className={`my-4 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent ${isCollapsed ? 'hidden lg:block' : ''}`}></div>
+
+          {/* Quick Links Section */}
+          {!isOnSportsPage && (
+            <div className={`mt-4 ${isCollapsed ? 'hidden lg:block' : ''}`}>
+              <h3 className="text-xs font-bold text-[#a0a0b8] uppercase tracking-wider px-4 mb-3">Quick Links</h3>
+              <div className="space-y-1">
+                {quickLinks.map((item) => (
+                  <Link
+                    key={item.id}
+                    href={item.href}
+                    className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-[#a0a0b8] hover:text-white hover:bg-white/5 transition-all duration-200 group text-sm"
+                  >
+                    <span className="text-base opacity-70 group-hover:opacity-100 transition-opacity">{item.icon}</span>
+                    <span className="font-medium">{item.label}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Separator */}
+          <div className={`my-4 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent ${isCollapsed ? 'hidden lg:block' : ''}`}></div>
+
+          {/* Promotions Section */}
+          {!isOnSportsPage && (
+            <div className={`mt-4 ${isCollapsed ? 'hidden lg:block' : ''}`}>
+              <h3 className="text-xs font-bold text-[#a0a0b8] uppercase tracking-wider px-4 mb-3">Promotions</h3>
+              <div className="space-y-1">
+                {promotionalItems.map((item) => (
+                  <Link
+                    key={item.id}
+                    href={item.href}
+                    className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-[#a0a0b8] hover:text-white hover:bg-white/5 transition-all duration-200 group text-sm"
+                  >
+                    <span className="text-base opacity-70 group-hover:opacity-100 transition-opacity">{item.icon}</span>
+                    <span className="font-medium">{item.label}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Separator */}
+          <div className={`my-4 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent ${isCollapsed ? 'hidden lg:block' : ''}`}></div>
+
+          {/* Account & Tools Section */}
+          {!isOnSportsPage && (
+            <div className={`mt-4 ${isCollapsed ? 'hidden lg:block' : ''}`}>
+              <h3 className="text-xs font-bold text-[#a0a0b8] uppercase tracking-wider px-4 mb-3">Account & Tools</h3>
+              <div className="space-y-1">
+                {accountTools.map((item) => (
+                  <Link
+                    key={item.id}
+                    href={item.href}
+                    className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-[#a0a0b8] hover:text-white hover:bg-white/5 transition-all duration-200 group text-sm"
+                  >
+                    <span className="text-base opacity-70 group-hover:opacity-100 transition-opacity">{item.icon}</span>
+                    <span className="font-medium">{item.label}</span>
+                  </Link>
+                ))}
+              </div>
             </div>
           )}
 
