@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import NavbarWithDropdown from "@/components/NavbarWithDropdown";
-import Sidebar from "@/components/Sidebar";
-import BetSlip from "@/components/BetSlip";
+import LayoutClient from "@/components/LayoutClient";
 import { BetProvider } from "@/contexts/BetContext";
 import { LoadingProvider } from "@/contexts/LoadingContext";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -42,16 +40,9 @@ export default function RootLayout({
               <Suspense fallback={<LoadingSpinner />}>
                 <NavigationEvents />
               </Suspense>
-              <NavbarWithDropdown />
-              <div className="flex min-h-screen pt-16">
-                <Sidebar />
-                <main className="flex-1 lg:ml-0 xl:mr-80">
-                  <Suspense fallback={<LoadingSpinner />}>
-                    {children}
-                  </Suspense>
-                </main>
-                <BetSlip />
-              </div>
+              <LayoutClient>
+                {children}
+              </LayoutClient>
             </LoadingProvider>
           </BetProvider>
         </AuthProvider>

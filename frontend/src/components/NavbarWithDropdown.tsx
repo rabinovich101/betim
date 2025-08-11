@@ -4,12 +4,14 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePathname } from 'next/navigation';
+import { useSidebar } from '@/components/LayoutClient';
 
 export default function NavbarWithDropdown() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { user, isAuthenticated, logout } = useAuth();
   const pathname = usePathname();
+  const { isCollapsed, toggleSidebar } = useSidebar();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -40,10 +42,25 @@ export default function NavbarWithDropdown() {
 
   return (
     <nav className="fixed top-0 left-0 w-screen z-50 bg-[#232438] border-b border-[rgba(255,255,255,0.05)]">
-      <div className="px-4 lg:px-8 xl:px-12 2xl:px-16">
+      <div className="w-full">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <div className="flex items-center space-x-8">
+          {/* Left side - Hamburger and Logo */}
+          <div className="flex items-center">
+            {/* Hamburger Menu Button */}
+            <button
+              onClick={toggleSidebar}
+              className="p-2 rounded-lg hover:bg-white/10 transition-colors group ml-2"
+              aria-label="Toggle sidebar"
+            >
+              <div className="flex flex-col gap-1.5">
+                <span className={`block h-0.5 w-6 bg-white rounded-full transition-all duration-300 ${isCollapsed ? '' : 'rotate-45 translate-y-2'}`}></span>
+                <span className={`block h-0.5 w-6 bg-[#00ff87] rounded-full transition-all duration-300 ${isCollapsed ? 'opacity-100' : 'opacity-0'}`}></span>
+                <span className={`block h-0.5 w-6 bg-white rounded-full transition-all duration-300 ${isCollapsed ? '' : '-rotate-45 -translate-y-2'}`}></span>
+              </div>
+            </button>
+            
+            {/* Logo and Navigation */}
+            <div className="flex items-center ml-4">
             <Link href="/" className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-[#00ff87] rounded-lg flex items-center justify-center">
                 <span className="text-[#1a1a2e] font-bold text-lg">B</span>
@@ -52,7 +69,7 @@ export default function NavbarWithDropdown() {
             </Link>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-6">
+            <div className="hidden md:flex items-center space-x-6 ml-8">
               <Link href="/sports" className="text-[#a0a0b8] hover:text-white transition-colors duration-200">
                 Sports
               </Link>
@@ -63,10 +80,11 @@ export default function NavbarWithDropdown() {
                 Live Casino
               </Link>
             </div>
+            </div>
           </div>
 
           {/* Right Side Actions */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 mr-4">
             {isAuthenticated && user ? (
               // Logged in state with dropdown
               <div className="relative" ref={dropdownRef}>

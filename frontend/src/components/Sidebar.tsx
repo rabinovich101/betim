@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { oddsApi } from '@/services/oddsApi';
+import { useSidebar } from '@/components/LayoutClient';
 
 interface NavItem {
   id: string;
@@ -23,26 +24,10 @@ interface SportItem {
 }
 
 const Sidebar = () => {
-  // Start collapsed on mobile, expanded on desktop
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const { isCollapsed } = useSidebar();
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [liveCount, setLiveCount] = useState(0);
   const pathname = usePathname();
-
-  // Set initial state based on screen size
-  useEffect(() => {
-    const checkScreenSize = () => {
-      if (window.innerWidth < 1024) {
-        setIsCollapsed(true);
-      } else {
-        setIsCollapsed(false);
-      }
-    };
-    
-    checkScreenSize();
-    window.addEventListener('resize', checkScreenSize);
-    return () => window.removeEventListener('resize', checkScreenSize);
-  }, []);
 
   // Fetch live count
   useEffect(() => {
@@ -113,158 +98,119 @@ const Sidebar = () => {
   const isActive = (href: string) => pathname === href;
   const isOnSportsPage = pathname?.startsWith('/sports');
 
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !isCollapsed) {
-        setIsCollapsed(true);
-      }
-    };
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
-  }, [isCollapsed]);
+  const renderNavItem = (item: NavItem | SportItem, isSport = false) => {
+    const active = isActive(item.href);
+    
+    return (
+      <Link
+        key={item.id}
+        href={item.href}
+        onMouseEnter={() => setHoveredItem(item.id)}
+        onMouseLeave={() => setHoveredItem(null)}
+        className={`
+          relative flex items-center gap-3 rounded-xl
+          transition-all duration-200 group
+          ${isCollapsed ? 'px-3 py-2.5 justify-center' : 'px-4 py-2.5'}
+          ${active
+            ? 'bg-gradient-to-r from-[#00ff87]/20 to-[#00ff87]/10 text-[#00ff87] shadow-lg shadow-[#00ff87]/20' 
+            : 'text-[#a0a0b8] hover:text-white hover:bg-white/5'
+          }
+        `}
+      >
+        {/* Active indicator bar */}
+        {active && !isCollapsed && (
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-[#00ff87] to-[#00d68f] rounded-r-full -translate-x-4 shadow-lg shadow-[#00ff87]/50" />
+        )}
+        
+        {/* Icon */}
+        <span className={`${isSport ? 'text-xl' : 'text-2xl'} relative`}>
+          {item.icon}
+          {!isSport && 'highlight' in item && item.highlight && (
+            isCollapsed ? (
+              <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-[#ff4757] rounded-full"></span>
+            ) : (
+              <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#ff4757] rounded-full animate-ping"></span>
+            )
+          )}
+        </span>
+        
+        {/* Label and badges when expanded */}
+        {!isCollapsed && (
+          <>
+            <span className={`font-medium ${isSport ? 'text-sm' : ''}`}>
+              {item.label}
+            </span>
+            {'badge' in item && item.badge && (
+              <span className="ml-auto bg-gradient-to-r from-[#ff4757] to-[#ff6b7a] text-white text-xs px-2 py-1 rounded-full font-bold shadow-lg">
+                {item.badge}
+              </span>
+            )}
+            {'count' in item && item.count && (
+              <span className="ml-auto text-xs text-[#a0a0b8]">
+                {item.count}
+              </span>
+            )}
+          </>
+        )}
+        
+        {/* Tooltip when collapsed */}
+        {isCollapsed && (
+          <div className="absolute left-full ml-2 px-2 py-1 bg-[#1a1a2e] text-white text-sm rounded-md opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 border border-white/10">
+            {item.label}
+            {'badge' in item && item.badge && (
+              <span className="ml-2 bg-[#ff4757] text-white px-1.5 py-0.5 rounded text-xs">{item.badge}</span>
+            )}
+            {'count' in item && item.count && (
+              <span className="ml-2 text-[#a0a0b8]">({item.count})</span>
+            )}
+          </div>
+        )}
+        
+        {/* Hover glow effect */}
+        {!active && (
+          <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#00ff87]/0 to-[#00ff87]/0 group-hover:from-[#00ff87]/10 group-hover:to-transparent transition-all duration-300"></div>
+        )}
+      </Link>
+    );
+  };
 
   return (
-    <>
-      {/* Mobile Overlay with animation */}
-      <div 
-        className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden transition-all duration-300 ${
-          isCollapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'
-        }`}
-        onClick={() => setIsCollapsed(true)}
-      />
-
-      {/* Sidebar */}
-      <aside className={`
-        fixed top-16 left-0 h-[calc(100vh-4rem)] z-30
-        bg-gradient-to-b from-[#0f2027] to-[#0a1a1f]
-        border-r border-white/5
-        transition-all duration-300 ease-out
-        ${isCollapsed ? '-translate-x-full' : 'translate-x-0'}
-        w-56
-        lg:translate-x-0 lg:sticky lg:top-16
-        shadow-2xl lg:shadow-xl
-        overflow-y-auto
-      `}>
-        {/* Mobile close button */}
-        {!isCollapsed && (
-          <div className="relative p-4 lg:hidden">
-            <button
-              onClick={() => setIsCollapsed(true)}
-              className="absolute top-4 right-4 text-[#a0a0b8] hover:text-white transition-colors"
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+    <aside className={`
+      sticky top-16 h-[calc(100vh-4rem)] z-30
+      bg-gradient-to-b from-[#0f2027] to-[#0a1a1f]
+      border-r border-white/5
+      transition-all duration-300 ease-out
+      ${isCollapsed ? 'w-16' : 'w-56'}
+      shadow-xl
+      overflow-y-auto overflow-x-hidden
+    `}>
+      {/* Main Navigation */}
+      <nav className={`${isCollapsed ? 'p-2' : 'p-4'}`}>
+        {/* Show sports categories if on sports page, otherwise show main nav */}
+        {isOnSportsPage ? (
+          <div className="space-y-1">
+            {/* Sports Title */}
+            {!isCollapsed && (
+              <h2 className="text-lg font-bold text-white px-4 py-2 mb-2">Sports Categories</h2>
+            )}
+            
+            {/* Sports Categories */}
+            {sportsCategories.map((sport) => renderNavItem(sport, true))}
+          </div>
+        ) : (
+          <div className="space-y-1">
+            {navItems.map((item) => renderNavItem(item))}
           </div>
         )}
 
-        {/* Main Navigation */}
-        <nav className="p-4">
-          {/* Show sports categories if on sports page, otherwise show main nav */}
-          {isOnSportsPage ? (
-            <div className="space-y-1">
-              {/* Sports Title */}
-              <h2 className="text-lg font-bold text-white px-4 py-2 mb-2">Sports Categories</h2>
-              
-              {/* Sports Categories */}
-              {sportsCategories.map((sport) => (
-                <Link
-                  key={sport.id}
-                  href={sport.href}
-                  onMouseEnter={() => setHoveredItem(sport.id)}
-                  onMouseLeave={() => setHoveredItem(null)}
-                  className={`
-                    relative flex items-center gap-3 px-4 py-2.5 rounded-xl
-                    transition-all duration-200 group
-                    ${isActive(sport.href) 
-                      ? 'bg-gradient-to-r from-[#00ff87]/20 to-[#00ff87]/10 text-[#00ff87] shadow-lg shadow-[#00ff87]/20' 
-                      : 'text-[#a0a0b8] hover:text-white hover:bg-white/5'
-                    }
-                  `}
-                >
-                  {/* Active indicator bar */}
-                  {isActive(sport.href) && (
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-[#00ff87] to-[#00d68f] rounded-r-full -translate-x-4 shadow-lg shadow-[#00ff87]/50" />
-                  )}
-                  
-                  {/* Icon */}
-                  <span className="text-xl">{sport.icon}</span>
-                  
-                  {/* Label */}
-                  <span className={`font-medium text-sm ${isCollapsed ? 'hidden lg:inline' : ''}`}>
-                    {sport.label}
-                  </span>
-                  
-                  {/* Count badge */}
-                  {sport.count && (
-                    <span className={`ml-auto text-xs text-[#a0a0b8] ${isCollapsed ? 'hidden lg:inline' : ''}`}>
-                      {sport.count}
-                    </span>
-                  )}
-                  
-                  {/* Hover glow effect */}
-                  {!isActive(sport.href) && (
-                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#00ff87]/0 to-[#00ff87]/0 group-hover:from-[#00ff87]/10 group-hover:to-transparent transition-all duration-300"></div>
-                  )}
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-1">
-              {navItems.map((item) => (
-                <Link
-                  key={item.id}
-                  href={item.href}
-                  onMouseEnter={() => setHoveredItem(item.id)}
-                  onMouseLeave={() => setHoveredItem(null)}
-                  className={`
-                    relative flex items-center gap-3 px-4 py-3 rounded-xl
-                    transition-all duration-200 group
-                    ${isActive(item.href) 
-                      ? 'bg-gradient-to-r from-[#00ff87]/20 to-[#00ff87]/10 text-[#00ff87] shadow-lg shadow-[#00ff87]/20' 
-                      : 'text-[#a0a0b8] hover:text-white hover:bg-white/5'
-                    }
-                  `}
-                >
-                  {/* Active indicator bar */}
-                  {isActive(item.href) && (
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-[#00ff87] to-[#00d68f] rounded-r-full -translate-x-4 shadow-lg shadow-[#00ff87]/50" />
-                  )}
-                  
-                  {/* Icon with glow effect */}
-                  <span className={`text-2xl relative ${item.highlight ? 'animate-pulse' : ''}`}>
-                    {item.icon}
-                    {item.highlight && (
-                      <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#ff4757] rounded-full animate-ping"></span>
-                    )}
-                  </span>
-                  
-                  {/* Label and badge - Always visible on desktop, hidden on mobile when collapsed */}
-                  <span className={`font-medium tracking-wide ${isCollapsed ? 'hidden lg:inline' : ''}`}>
-                    {item.label}
-                  </span>
-                  {item.badge && (
-                    <span className={`ml-auto bg-gradient-to-r from-[#ff4757] to-[#ff6b7a] text-white text-xs px-2 py-1 rounded-full font-bold shadow-lg ${isCollapsed ? 'hidden lg:inline-block' : ''}`}>
-                      {item.badge}
-                    </span>
-                  )}
-                  
-                  {/* Hover glow effect */}
-                  {!isActive(item.href) && (
-                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#00ff87]/0 to-[#00ff87]/0 group-hover:from-[#00ff87]/10 group-hover:to-transparent transition-all duration-300"></div>
-                  )}
-                </Link>
-              ))}
-            </div>
-          )}
+        {/* Additional sections only when expanded and not on sports page */}
+        {!isCollapsed && !isOnSportsPage && (
+          <>
+            {/* Separator */}
+            <div className="my-4 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
 
-          {/* Separator */}
-          <div className={`my-4 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent ${isCollapsed ? 'hidden lg:block' : ''}`}></div>
-
-          {/* Quick Links Section */}
-          {!isOnSportsPage && (
-            <div className={`mt-4 ${isCollapsed ? 'hidden lg:block' : ''}`}>
+            {/* Quick Links Section */}
+            <div className="mt-4">
               <h3 className="text-xs font-bold text-[#a0a0b8] uppercase tracking-wider px-4 mb-3">Quick Links</h3>
               <div className="space-y-1">
                 {quickLinks.map((item) => (
@@ -279,14 +225,12 @@ const Sidebar = () => {
                 ))}
               </div>
             </div>
-          )}
 
-          {/* Separator */}
-          <div className={`my-4 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent ${isCollapsed ? 'hidden lg:block' : ''}`}></div>
+            {/* Separator */}
+            <div className="my-4 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
 
-          {/* Promotions Section */}
-          {!isOnSportsPage && (
-            <div className={`mt-4 ${isCollapsed ? 'hidden lg:block' : ''}`}>
+            {/* Promotions Section */}
+            <div className="mt-4">
               <h3 className="text-xs font-bold text-[#a0a0b8] uppercase tracking-wider px-4 mb-3">Promotions</h3>
               <div className="space-y-1">
                 {promotionalItems.map((item) => (
@@ -301,14 +245,12 @@ const Sidebar = () => {
                 ))}
               </div>
             </div>
-          )}
 
-          {/* Separator */}
-          <div className={`my-4 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent ${isCollapsed ? 'hidden lg:block' : ''}`}></div>
+            {/* Separator */}
+            <div className="my-4 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
 
-          {/* Account & Tools Section */}
-          {!isOnSportsPage && (
-            <div className={`mt-4 ${isCollapsed ? 'hidden lg:block' : ''}`}>
+            {/* Account & Tools Section */}
+            <div className="mt-4">
               <h3 className="text-xs font-bold text-[#a0a0b8] uppercase tracking-wider px-4 mb-3">Account & Tools</h3>
               <div className="space-y-1">
                 {accountTools.map((item) => (
@@ -323,31 +265,10 @@ const Sidebar = () => {
                 ))}
               </div>
             </div>
-          )}
-
-        </nav>
-
-      </aside>
-
-      {/* Mobile Menu Toggle Button */}
-      <button
-        onClick={() => setIsCollapsed(false)}
-        className={`
-          fixed top-20 left-4 z-30 lg:hidden
-          w-12 h-12 bg-gradient-to-br from-[#132a2f] to-[#0f2027] border border-white/10 rounded-xl
-          flex items-center justify-center text-white
-          transition-all duration-300 transform hover:scale-105
-          shadow-lg hover:shadow-xl
-          ${!isCollapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'}
-        `}
-      >
-        <div className="flex flex-col gap-1">
-          <span className="block w-5 h-0.5 bg-white rounded-full"></span>
-          <span className="block w-3 h-0.5 bg-[#00ff87] rounded-full ml-1"></span>
-          <span className="block w-5 h-0.5 bg-white rounded-full"></span>
-        </div>
-      </button>
-    </>
+          </>
+        )}
+      </nav>
+    </aside>
   );
 };
 
