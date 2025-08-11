@@ -24,7 +24,9 @@
       "mcp__playwright__browser_handle_dialog",
       "Bash(curl:*)",
       "Bash(lsof:*)",
-      "Bash(docker exec:*)"
+      "Bash(docker exec:*)",
+      "Bash(node:*)",
+      "Bash(npm start)"
     ],
     "deny": []
   }
