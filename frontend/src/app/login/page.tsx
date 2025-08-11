@@ -4,10 +4,12 @@ import { useState } from 'react';
 import LoadingLink from '@/components/LoadingLink';
 import { useRouter } from 'next/navigation';
 import { useLoading } from '@/contexts/LoadingContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Login() {
   const router = useRouter();
   const { startLoading } = useLoading();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -15,6 +17,7 @@ export default function Login() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -22,18 +25,23 @@ export default function Login() {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+    setError(''); // Clear error on input change
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError('');
     
-    // Simulate API call
-    setTimeout(() => {
-      console.log('Login:', formData);
+    try {
+      // Use email as username for login (or extract username from email)
+      const username = formData.email.split('@')[0];
+      await login(username, formData.password);
       startLoading();
-      router.push('/');
-    }, 2000);
+    } catch (err) {
+      setError('Invalid email or password');
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -140,6 +148,13 @@ export default function Login() {
                 <span className="text-sm text-[#a0a0b8]">Remember me</span>
               </label>
             </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="mb-4 p-3 bg-[#ff4757]/10 border border-[#ff4757]/30 rounded-lg text-[#ff4757] text-sm">
+                {error}
+              </div>
+            )}
 
             {/* Submit Button */}
             <button

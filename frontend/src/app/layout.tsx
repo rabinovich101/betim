@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
+import NavbarWithDropdown from "@/components/NavbarWithDropdown";
 import Sidebar from "@/components/Sidebar";
 import BetSlip from "@/components/BetSlip";
 import { BetProvider } from "@/contexts/BetContext";
 import { LoadingProvider } from "@/contexts/LoadingContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { NavigationEvents } from "@/components/NavigationEvents";
 import { Suspense } from "react";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -35,23 +36,25 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#1a1a2e] text-white`}
       >
-        <BetProvider>
-          <LoadingProvider>
-            <Suspense fallback={<LoadingSpinner />}>
-              <NavigationEvents />
-            </Suspense>
-            <Navbar />
-            <div className="flex min-h-screen pt-16">
-              <Sidebar />
-              <main className="flex-1 lg:ml-0 xl:mr-80">
-                <Suspense fallback={<LoadingSpinner />}>
-                  {children}
-                </Suspense>
-              </main>
-              <BetSlip />
-            </div>
-          </LoadingProvider>
-        </BetProvider>
+        <AuthProvider>
+          <BetProvider>
+            <LoadingProvider>
+              <Suspense fallback={<LoadingSpinner />}>
+                <NavigationEvents />
+              </Suspense>
+              <NavbarWithDropdown />
+              <div className="flex min-h-screen pt-16">
+                <Sidebar />
+                <main className="flex-1 lg:ml-0 xl:mr-80">
+                  <Suspense fallback={<LoadingSpinner />}>
+                    {children}
+                  </Suspense>
+                </main>
+                <BetSlip />
+              </div>
+            </LoadingProvider>
+          </BetProvider>
+        </AuthProvider>
       </body>
     </html>
   );
