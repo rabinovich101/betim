@@ -6,6 +6,7 @@ import { oddsApi, Event } from '@/services/oddsApi';
 import { useBets } from '@/contexts/BetContext';
 import Link from 'next/link';
 import ExpandableBettingMarketsV2 from '@/components/ExpandableBettingMarketsV2';
+import { countBettingMarkets } from '@/utils/countBettingMarkets';
 
 export default function SportsPage() {
   const [allMatches, setAllMatches] = useState<Event[]>([]);
@@ -368,21 +369,29 @@ export default function SportsPage() {
                         </>
                       ) : null}
                       
-                      {/* Expandable Markets Button - moved outside to render below */}
-                      <button
-                        onClick={() => setExpandedMatch(expandedMatch === match.id ? null : match.id)}
-                        className="flex items-center gap-2 px-4 py-2 bg-[#1a1a2e] text-[#00ff87] rounded-lg hover:bg-[#00ff87]/20 transition-all text-sm font-bold border border-[#00ff87]/30 ml-2"
-                      >
-                        <span>+157</span>
-                        <svg 
-                          className={`w-4 h-4 transition-transform ${expandedMatch === match.id ? 'rotate-180' : ''}`}
-                          fill="none" 
-                          stroke="currentColor" 
-                          viewBox="0 0 24 24"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </button>
+                      {/* Expandable Markets Button - shows actual count */}
+                      {(() => {
+                        const additionalMarkets = countBettingMarkets(match);
+                        if (additionalMarkets > 0) {
+                          return (
+                            <button
+                              onClick={() => setExpandedMatch(expandedMatch === match.id ? null : match.id)}
+                              className="flex items-center gap-2 px-4 py-2 bg-[#1a1a2e] text-[#00ff87] rounded-lg hover:bg-[#00ff87]/20 transition-all text-sm font-bold border border-[#00ff87]/30 ml-2"
+                            >
+                              <span>+{additionalMarkets}</span>
+                              <svg 
+                                className={`w-4 h-4 transition-transform ${expandedMatch === match.id ? 'rotate-180' : ''}`}
+                                fill="none" 
+                                stroke="currentColor" 
+                                viewBox="0 0 24 24"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </button>
+                          );
+                        }
+                        return null;
+                      })()}
                     </div>
                   </div>
                 </div>

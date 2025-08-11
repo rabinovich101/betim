@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useBets } from '@/contexts/BetContext';
 import { oddsApi, Event } from '@/services/oddsApi';
 import ExpandableBettingMarketsV2 from '@/components/ExpandableBettingMarketsV2';
+import { countBettingMarkets } from '@/utils/countBettingMarkets';
 
 export default function UpcomingLive() {
   const [displayCount, setDisplayCount] = useState(5);
@@ -259,21 +260,29 @@ export default function UpcomingLive() {
                   </>
                 ) : null}
                 
-                {/* Expandable Markets Button */}
-                <button
-                  onClick={() => setExpandedMatch(expandedMatch === event.id ? null : event.id)}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#1a1a2e] text-[#00ff87] rounded-lg hover:bg-[#00ff87]/20 transition-all text-sm font-bold border border-[#00ff87]/30 ml-2"
-                >
-                  <span>+157</span>
-                  <svg 
-                    className={`w-4 h-4 transition-transform ${expandedMatch === event.id ? 'rotate-180' : ''}`}
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
+                {/* Expandable Markets Button - shows actual count */}
+                {(() => {
+                  const additionalMarkets = countBettingMarkets(event);
+                  if (additionalMarkets > 0) {
+                    return (
+                      <button
+                        onClick={() => setExpandedMatch(expandedMatch === event.id ? null : event.id)}
+                        className="flex items-center gap-2 px-4 py-2 bg-[#1a1a2e] text-[#00ff87] rounded-lg hover:bg-[#00ff87]/20 transition-all text-sm font-bold border border-[#00ff87]/30 ml-2"
+                      >
+                        <span>+{additionalMarkets}</span>
+                        <svg 
+                          className={`w-4 h-4 transition-transform ${expandedMatch === event.id ? 'rotate-180' : ''}`}
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                    );
+                  }
+                  return null;
+                })()}
               </div>
               </div>
               

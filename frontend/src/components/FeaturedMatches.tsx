@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useBets } from '@/contexts/BetContext';
 import { oddsApi, Event } from '@/services/oddsApi';
 import ExpandableBettingMarketsV2 from '@/components/ExpandableBettingMarketsV2';
+import { countBettingMarkets } from '@/utils/countBettingMarkets';
 
 export default function FeaturedMatches() {
   const { addBet, isBetSelected } = useBets();
@@ -154,21 +155,29 @@ export default function FeaturedMatches() {
                     <div className="font-bold">{featuredMatch.markets['1X2'].away}</div>
                   </button>
                   
-                  {/* Expandable Markets Button */}
-                  <button
-                    onClick={() => setIsExpanded(!isExpanded)}
-                    className="flex items-center gap-2 px-6 py-3 bg-[#232438] text-[#00ff87] rounded-lg border border-[#00ff87]/30 hover:bg-[#2a2b3f] transition-all"
-                  >
-                    <span>+157</span>
-                    <svg 
-                      className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
+                  {/* Expandable Markets Button - shows actual count */}
+                  {(() => {
+                    const additionalMarkets = countBettingMarkets(featuredMatch);
+                    if (additionalMarkets > 0) {
+                      return (
+                        <button
+                          onClick={() => setIsExpanded(!isExpanded)}
+                          className="flex items-center gap-2 px-6 py-3 bg-[#232438] text-[#00ff87] rounded-lg border border-[#00ff87]/30 hover:bg-[#2a2b3f] transition-all"
+                        >
+                          <span>+{additionalMarkets}</span>
+                          <svg 
+                            className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                            fill="none" 
+                            stroke="currentColor" 
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
               )}
             </div>
