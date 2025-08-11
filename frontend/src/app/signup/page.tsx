@@ -76,6 +76,61 @@ export default function SignUp() {
     setPasswordStrength(strength);
   }, [formData.password]);
 
+  // Check username availability
+  useEffect(() => {
+    const checkUsername = async () => {
+      if (formData.username && formData.username.length >= 3) {
+        try {
+          const response = await fetch(`http://localhost:4001/api/auth/check-username/${formData.username}`);
+          const data = await response.json();
+          
+          if (!data.available) {
+            setErrors(prev => ({ ...prev, username: 'Username already taken' }));
+          } else if (errors.username === 'Username already taken') {
+            setErrors(prev => {
+              const newErrors = { ...prev };
+              delete newErrors.username;
+              return newErrors;
+            });
+          }
+        } catch (error) {
+          console.error('Error checking username:', error);
+        }
+      }
+    };
+
+    const timer = setTimeout(checkUsername, 500);
+    return () => clearTimeout(timer);
+  }, [formData.username]);
+
+  // Check email availability
+  useEffect(() => {
+    const checkEmail = async () => {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (formData.email && emailRegex.test(formData.email)) {
+        try {
+          const response = await fetch(`http://localhost:4001/api/auth/check-email/${formData.email}`);
+          const data = await response.json();
+          
+          if (!data.available) {
+            setErrors(prev => ({ ...prev, email: 'Email already registered' }));
+          } else if (errors.email === 'Email already registered') {
+            setErrors(prev => {
+              const newErrors = { ...prev };
+              delete newErrors.email;
+              return newErrors;
+            });
+          }
+        } catch (error) {
+          console.error('Error checking email:', error);
+        }
+      }
+    };
+
+    const timer = setTimeout(checkEmail, 500);
+    return () => clearTimeout(timer);
+  }, [formData.email]);
+
   const getPasswordStrengthText = () => {
     switch (passwordStrength) {
       case 0:
@@ -184,11 +239,47 @@ export default function SignUp() {
 
     setIsSubmitting(true);
     
-    setTimeout(() => {
-      console.log('Form submitted:', formData);
-      alert('Registration successful! Please check your email to verify your account.');
+    try {
+      const response = await fetch('http://localhost:4001/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          username: formData.username,
+          password: formData.password,
+          fullName: formData.fullName,
+          dateOfBirth: formData.dateOfBirth,
+          country: formData.country,
+          state: formData.state || undefined,
+          promoCode: formData.promoCode || undefined,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Registration failed');
+      }
+
+      // Store token in localStorage
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+      }
+
+      // Show success message
+      alert(`Registration successful! Welcome ${data.user.fullName}!`);
+      
+      // Redirect to home page or dashboard
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Registration error:', error);
+      alert((error as Error).message || 'Registration failed. Please try again.');
+    } finally {
       setIsSubmitting(false);
-    }, 2000);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {

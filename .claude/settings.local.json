@@ -18,7 +18,13 @@
       "mcp__playwright__browser_type",
       "mcp__playwright__browser_select_option",
       "Bash(npm init:*)",
-      "Bash(npx prisma init:*)"
+      "Bash(npx prisma init:*)",
+      "Bash(docker-compose:*)",
+      "Bash(npx prisma:*)",
+      "mcp__playwright__browser_handle_dialog",
+      "Bash(curl:*)",
+      "Bash(lsof:*)",
+      "Bash(docker exec:*)"
     ],
     "deny": []
   }

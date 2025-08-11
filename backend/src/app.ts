@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
 import { PrismaClient } from '@prisma/client';
+import authRoutes from './routes/auth.routes';
 
 // Load environment variables
 dotenv.config();
@@ -18,7 +19,7 @@ const PORT = process.env.PORT || 4000;
 
 // Middleware
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  origin: ['http://localhost:3000', 'http://localhost:3001'],
   credentials: true,
 }));
 
@@ -43,7 +44,10 @@ app.get('/health', (req: Request, res: Response) => {
   });
 });
 
-// API Routes (to be implemented)
+// API Routes
+app.use('/api/auth', authRoutes);
+
+// API documentation
 app.get('/api', (req: Request, res: Response) => {
   res.json({
     message: 'BETIM API v1.0',
