@@ -5,6 +5,7 @@ import { useLoading } from '@/contexts/LoadingContext';
 import { oddsApi, Event } from '@/services/oddsApi';
 import { useBets } from '@/contexts/BetContext';
 import Link from 'next/link';
+import ExpandableBettingMarketsV2 from '@/components/ExpandableBettingMarketsV2';
 
 export default function BasketballPage() {
   const [allMatches, setAllMatches] = useState<Event[]>([]);
@@ -13,6 +14,7 @@ export default function BasketballPage() {
   const { addBet, isBetSelected } = useBets();
   const [isLoading, setIsLoading] = useState(true);
   const [displayCount, setDisplayCount] = useState(20);
+  const [expandedMatch, setExpandedMatch] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -187,8 +189,9 @@ export default function BasketballPage() {
         ) : (
           <div className="space-y-3">
             {displayedMatches.map((match) => (
-              <div key={match.id} className="bg-[#0f0f23]/50 rounded-lg p-4 border border-white/5 hover:border-[#00ff87]/30 transition-all">
-                <div className="flex items-center justify-between">
+              <div key={match.id} className="space-y-3">
+                <div className="bg-[#0f0f23]/50 rounded-lg p-4 border border-white/5 hover:border-[#00ff87]/30 transition-all">
+                  <div className="flex items-center justify-between">
                   {/* Match Info */}
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
@@ -260,8 +263,34 @@ export default function BasketballPage() {
                         <span>O/U: {match.markets.total?.line}</span>
                       </div>
                     )}
+                    
+                    {/* Expandable Markets Button */}
+                    <button
+                      onClick={() => setExpandedMatch(expandedMatch === match.id ? null : match.id)}
+                      className="flex items-center gap-2 px-4 py-2 bg-[#1a1a2e] text-[#00ff87] rounded-lg hover:bg-[#00ff87]/20 transition-all text-sm font-bold border border-[#00ff87]/30 ml-2"
+                    >
+                      <span>+157</span>
+                      <svg 
+                        className={`w-4 h-4 transition-transform ${expandedMatch === match.id ? 'rotate-180' : ''}`}
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
                   </div>
                 </div>
+                
+                {/* Expanded Markets - Renders as separate card below */}
+                {expandedMatch === match.id && (
+                  <ExpandableBettingMarketsV2 
+                    event={match} 
+                    matchId={`basketball-${match.id}`}
+                    isExpanded={true}
+                    onToggle={() => setExpandedMatch(null)}
+                  />
+                )}
               </div>
             ))}
           </div>

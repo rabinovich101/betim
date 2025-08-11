@@ -28,7 +28,12 @@
       "Bash(node:*)",
       "Bash(npm start)",
       "Bash(kill:*)",
-      "Bash(docker stop:*)"
+      "Bash(docker stop:*)",
+      "Bash(npx eslint:*)",
+      "Bash(grep:*)",
+      "Bash(cat:*)",
+      "Bash(npx tsc:*)",
+      "Bash(sed:*)"
     ],
     "deny": []
   }

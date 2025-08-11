@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useBets } from '@/contexts/BetContext';
 import { oddsApi, Event } from '@/services/oddsApi';
+import ExpandableBettingMarketsV2 from '@/components/ExpandableBettingMarketsV2';
 
 export default function UpcomingLive() {
   const [displayCount, setDisplayCount] = useState(5);
   const [isLoading, setIsLoading] = useState(false);
   const [matches, setMatches] = useState<Event[]>([]);
+  const [expandedMatch, setExpandedMatch] = useState<string | null>(null);
   const { addBet, isBetSelected } = useBets();
 
   useEffect(() => {
@@ -125,10 +127,8 @@ export default function UpcomingLive() {
       <div className="bg-gradient-to-br from-[#1a2c38] via-[#0f2027] to-[#1a2c38] rounded-xl p-6">
         <div className="space-y-2">
           {displayedMatches.map((event) => (
-            <div 
-              key={event.id}
-              className="flex items-center justify-between p-4 bg-[#0f1923]/50 hover:bg-[#0f1923]/70 rounded-lg transition-all duration-200 border border-white/5 hover:border-[#00ff87]/20"
-            >
+            <div key={event.id} className="space-y-3">
+              <div className="flex items-center justify-between p-4 bg-[#0f1923]/50 hover:bg-[#0f1923]/70 rounded-lg transition-all duration-200 border border-white/5 hover:border-[#00ff87]/20">
               <div className="flex items-center gap-4 flex-1">
                 {/* Sport Icon */}
                 <div className="text-2xl">{getSportIcon(event.sport)}</div>
@@ -258,7 +258,34 @@ export default function UpcomingLive() {
                     </button>
                   </>
                 ) : null}
+                
+                {/* Expandable Markets Button */}
+                <button
+                  onClick={() => setExpandedMatch(expandedMatch === event.id ? null : event.id)}
+                  className="flex items-center gap-2 px-4 py-2 bg-[#1a1a2e] text-[#00ff87] rounded-lg hover:bg-[#00ff87]/20 transition-all text-sm font-bold border border-[#00ff87]/30 ml-2"
+                >
+                  <span>+157</span>
+                  <svg 
+                    className={`w-4 h-4 transition-transform ${expandedMatch === event.id ? 'rotate-180' : ''}`}
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
               </div>
+              </div>
+              
+              {/* Expanded Markets - Renders as separate card below */}
+              {expandedMatch === event.id && (
+                <ExpandableBettingMarketsV2 
+                  event={event} 
+                  matchId={`match-${event.id}`}
+                  isExpanded={true}
+                  onToggle={() => setExpandedMatch(null)}
+                />
+              )}
             </div>
           ))}
         </div>
@@ -272,12 +299,10 @@ export default function UpcomingLive() {
               className="px-8 py-3 bg-gradient-to-r from-[#00ff87] to-[#00d68f] text-[#0a1a1f] font-bold rounded-xl hover:shadow-lg hover:shadow-[#00ff87]/30 transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <div className="flex items-center gap-2">
-                <>
-                  <span>Load More Games</span>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </>
+                <span>Load More Games</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
               </div>
             </button>
             <p className="text-sm text-[#a0a0b8] mt-2">

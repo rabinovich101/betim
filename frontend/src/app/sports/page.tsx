@@ -5,6 +5,7 @@ import { useLoading } from '@/contexts/LoadingContext';
 import { oddsApi, Event } from '@/services/oddsApi';
 import { useBets } from '@/contexts/BetContext';
 import Link from 'next/link';
+import ExpandableBettingMarketsV2 from '@/components/ExpandableBettingMarketsV2';
 
 export default function SportsPage() {
   const [allMatches, setAllMatches] = useState<Event[]>([]);
@@ -18,6 +19,7 @@ export default function SportsPage() {
   const { addBet, isBetSelected } = useBets();
   const [isLoading, setIsLoading] = useState(true);
   const [displayCount, setDisplayCount] = useState(20);
+  const [expandedMatch, setExpandedMatch] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -68,7 +70,7 @@ export default function SportsPage() {
     };
 
     fetchData();
-  }, []); // Remove dependencies to only fetch once on mount
+  }, []); // Only fetch once on mount
 
   // Update displayed matches when displayCount changes
   useEffect(() => {
@@ -195,7 +197,7 @@ export default function SportsPage() {
             <div className="flex items-center gap-3">
               <span className="text-2xl">📅</span>
               <div>
-                <p className="text-[#a0a0b8] text-xs">Today\'s Games</p>
+                <p className="text-[#a0a0b8] text-xs">Today&apos;s Games</p>
                 <p className="text-white font-bold text-lg">
                   {allMatches.filter(m => {
                     const date = new Date(m.startTime);
@@ -237,135 +239,163 @@ export default function SportsPage() {
         ) : (
           <div className="space-y-3">
             {displayedMatches.map((match) => (
-              <div key={match.id} className="bg-[#0f0f23]/50 rounded-lg p-4 border border-white/5 hover:border-[#00ff87]/30 transition-all">
-                <div className="flex items-center justify-between">
-                  {/* Sport & Match Info */}
-                  <div className="flex items-center gap-4 flex-1">
-                    <div className="text-3xl">{getSportIcon(match.sport)}</div>
-                    
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs bg-[#00ff87]/20 text-[#00ff87] px-2 py-0.5 rounded font-medium capitalize">
-                          {match.sport}
-                        </span>
-                        <span className="text-xs text-[#a0a0b8]">
-                          {match.league || match.tournament || 'League'}
-                        </span>
-                        {match.isLive ? (
-                          <span className="text-xs bg-[#ff4757]/20 text-[#ff4757] px-2 py-0.5 rounded font-bold animate-pulse">
-                            LIVE {match.minute && `${match.minute}'`}
-                            {match.quarter && `Q${match.quarter}`}
-                            {match.currentSet && `Set ${match.currentSet}`}
+              <div key={match.id} className="space-y-3">
+                <div className="bg-[#0f0f23]/50 rounded-lg p-4 border border-white/5 hover:border-[#00ff87]/30 transition-all">
+                  <div className="flex items-center justify-between">
+                    {/* Sport & Match Info */}
+                    <div className="flex items-center gap-4 flex-1">
+                      <div className="text-3xl">{getSportIcon(match.sport)}</div>
+                      
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs bg-[#00ff87]/20 text-[#00ff87] px-2 py-0.5 rounded font-medium capitalize">
+                            {match.sport}
                           </span>
-                        ) : (
-                          <span className="text-xs text-white/60">{formatTime(match.startTime)}</span>
-                        )}
-                      </div>
-                      
-                      <div className="text-white font-medium">
-                        {match.sport === 'tennis' ? (
-                          <span>{match.player1} vs {match.player2}</span>
-                        ) : (
-                          <span>{match.homeTeam} vs {match.awayTeam}</span>
-                        )}
-                      </div>
-                      
-                      {match.isLive && (
-                        <div className="text-[#00ff87] text-sm mt-1 font-bold">
-                          {match.sport === 'tennis' && match.player1Sets !== undefined && match.player2Sets !== undefined ? (
-                            <span>Sets: {match.player1Sets} - {match.player2Sets} | Games: {match.player1Games} - {match.player2Games}</span>
-                          ) : match.homeScore !== undefined && match.awayScore !== undefined ? (
-                            <span>Score: {match.homeScore} - {match.awayScore}</span>
-                          ) : null}
+                          <span className="text-xs text-[#a0a0b8]">
+                            {match.league || match.tournament || 'League'}
+                          </span>
+                          {match.isLive ? (
+                            <span className="text-xs bg-[#ff4757]/20 text-[#ff4757] px-2 py-0.5 rounded font-bold animate-pulse">
+                              LIVE {match.minute && `${match.minute}'`}
+                              {match.quarter && `Q${match.quarter}`}
+                              {match.currentSet && `Set ${match.currentSet}`}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-white/60">{formatTime(match.startTime)}</span>
+                          )}
                         </div>
-                      )}
+                        
+                        <div className="text-white font-medium">
+                          {match.sport === 'tennis' ? (
+                            <span>{match.player1} vs {match.player2}</span>
+                          ) : (
+                            <span>{match.homeTeam} vs {match.awayTeam}</span>
+                          )}
+                        </div>
+                        
+                        {match.isLive && (
+                          <div className="text-[#00ff87] text-sm mt-1 font-bold">
+                            {match.sport === 'tennis' && match.player1Sets !== undefined && match.player2Sets !== undefined ? (
+                              <span>Sets: {match.player1Sets} - {match.player2Sets} | Games: {match.player1Games} - {match.player2Games}</span>
+                            ) : match.homeScore !== undefined && match.awayScore !== undefined ? (
+                              <span>Score: {match.homeScore} - {match.awayScore}</span>
+                            ) : null}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Odds Buttons */}
+                    <div className="flex gap-2">
+                      {match.sport === 'tennis' && match.markets.matchWinner ? (
+                        <>
+                          <button 
+                            onClick={() => handleBetClick(match, '1')}
+                            className={`px-4 py-2 min-w-[70px] rounded-lg transition-all text-sm font-bold ${
+                              isBetSelected(`sport-${match.id}`, '1')
+                                ? 'bg-[#00ff87] text-[#0a1a1f]'
+                                : 'bg-[#1a1a2e] text-white hover:bg-[#00ff87]/20 hover:text-[#00ff87] border border-white/10'
+                            }`}
+                          >
+                            {match.markets.matchWinner.player1}
+                          </button>
+                          <button 
+                            onClick={() => handleBetClick(match, '2')}
+                            className={`px-4 py-2 min-w-[70px] rounded-lg transition-all text-sm font-bold ${
+                              isBetSelected(`sport-${match.id}`, '2')
+                                ? 'bg-[#00ff87] text-[#0a1a1f]'
+                                : 'bg-[#1a1a2e] text-white hover:bg-[#00ff87]/20 hover:text-[#00ff87] border border-white/10'
+                            }`}
+                          >
+                            {match.markets.matchWinner.player2}
+                          </button>
+                        </>
+                      ) : match.sport === 'basketball' && match.markets.moneyline ? (
+                        <>
+                          <button 
+                            onClick={() => handleBetClick(match, '1')}
+                            className={`px-4 py-2 min-w-[70px] rounded-lg transition-all text-sm font-bold ${
+                              isBetSelected(`sport-${match.id}`, '1')
+                                ? 'bg-[#00ff87] text-[#0a1a1f]'
+                                : 'bg-[#1a1a2e] text-white hover:bg-[#00ff87]/20 hover:text-[#00ff87] border border-white/10'
+                            }`}
+                          >
+                            {match.markets.moneyline.home}
+                          </button>
+                          <button 
+                            onClick={() => handleBetClick(match, '2')}
+                            className={`px-4 py-2 min-w-[70px] rounded-lg transition-all text-sm font-bold ${
+                              isBetSelected(`sport-${match.id}`, '2')
+                                ? 'bg-[#00ff87] text-[#0a1a1f]'
+                                : 'bg-[#1a1a2e] text-white hover:bg-[#00ff87]/20 hover:text-[#00ff87] border border-white/10'
+                            }`}
+                          >
+                            {match.markets.moneyline.away}
+                          </button>
+                        </>
+                      ) : match.sport === 'football' && match.markets['1X2'] ? (
+                        <>
+                          <button 
+                            onClick={() => handleBetClick(match, 'home')}
+                            className={`px-4 py-2 min-w-[60px] rounded-lg transition-all text-sm font-bold ${
+                              isBetSelected(`sport-${match.id}`, 'home')
+                                ? 'bg-[#00ff87] text-[#0a1a1f]'
+                                : 'bg-[#1a1a2e] text-white hover:bg-[#00ff87]/20 hover:text-[#00ff87] border border-white/10'
+                            }`}
+                          >
+                            {match.markets['1X2'].home}
+                          </button>
+                          <button 
+                            onClick={() => handleBetClick(match, 'draw')}
+                            className={`px-4 py-2 min-w-[60px] rounded-lg transition-all text-sm font-bold ${
+                              isBetSelected(`sport-${match.id}`, 'draw')
+                                ? 'bg-[#00ff87] text-[#0a1a1f]'
+                                : 'bg-[#1a1a2e] text-white hover:bg-[#00ff87]/20 hover:text-[#00ff87] border border-white/10'
+                            }`}
+                          >
+                            {match.markets['1X2'].draw}
+                          </button>
+                          <button 
+                            onClick={() => handleBetClick(match, 'away')}
+                            className={`px-4 py-2 min-w-[60px] rounded-lg transition-all text-sm font-bold ${
+                              isBetSelected(`sport-${match.id}`, 'away')
+                                ? 'bg-[#00ff87] text-[#0a1a1f]'
+                                : 'bg-[#1a1a2e] text-white hover:bg-[#00ff87]/20 hover:text-[#00ff87] border border-white/10'
+                            }`}
+                          >
+                            {match.markets['1X2'].away}
+                          </button>
+                        </>
+                      ) : null}
+                      
+                      {/* Expandable Markets Button - moved outside to render below */}
+                      <button
+                        onClick={() => setExpandedMatch(expandedMatch === match.id ? null : match.id)}
+                        className="flex items-center gap-2 px-4 py-2 bg-[#1a1a2e] text-[#00ff87] rounded-lg hover:bg-[#00ff87]/20 transition-all text-sm font-bold border border-[#00ff87]/30 ml-2"
+                      >
+                        <span>+157</span>
+                        <svg 
+                          className={`w-4 h-4 transition-transform ${expandedMatch === match.id ? 'rotate-180' : ''}`}
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
                     </div>
                   </div>
-
-                  {/* Odds Buttons */}
-                  <div className="flex gap-2">
-                    {match.sport === 'tennis' && match.markets.matchWinner ? (
-                      <>
-                        <button 
-                          onClick={() => handleBetClick(match, '1')}
-                          className={`px-4 py-2 min-w-[70px] rounded-lg transition-all text-sm font-bold ${
-                            isBetSelected(`sport-${match.id}`, '1')
-                              ? 'bg-[#00ff87] text-[#0a1a1f]'
-                              : 'bg-[#1a1a2e] text-white hover:bg-[#00ff87]/20 hover:text-[#00ff87] border border-white/10'
-                          }`}
-                        >
-                          {match.markets.matchWinner.player1}
-                        </button>
-                        <button 
-                          onClick={() => handleBetClick(match, '2')}
-                          className={`px-4 py-2 min-w-[70px] rounded-lg transition-all text-sm font-bold ${
-                            isBetSelected(`sport-${match.id}`, '2')
-                              ? 'bg-[#00ff87] text-[#0a1a1f]'
-                              : 'bg-[#1a1a2e] text-white hover:bg-[#00ff87]/20 hover:text-[#00ff87] border border-white/10'
-                          }`}
-                        >
-                          {match.markets.matchWinner.player2}
-                        </button>
-                      </>
-                    ) : match.sport === 'basketball' && match.markets.moneyline ? (
-                      <>
-                        <button 
-                          onClick={() => handleBetClick(match, '1')}
-                          className={`px-4 py-2 min-w-[70px] rounded-lg transition-all text-sm font-bold ${
-                            isBetSelected(`sport-${match.id}`, '1')
-                              ? 'bg-[#00ff87] text-[#0a1a1f]'
-                              : 'bg-[#1a1a2e] text-white hover:bg-[#00ff87]/20 hover:text-[#00ff87] border border-white/10'
-                          }`}
-                        >
-                          {match.markets.moneyline.home}
-                        </button>
-                        <button 
-                          onClick={() => handleBetClick(match, '2')}
-                          className={`px-4 py-2 min-w-[70px] rounded-lg transition-all text-sm font-bold ${
-                            isBetSelected(`sport-${match.id}`, '2')
-                              ? 'bg-[#00ff87] text-[#0a1a1f]'
-                              : 'bg-[#1a1a2e] text-white hover:bg-[#00ff87]/20 hover:text-[#00ff87] border border-white/10'
-                          }`}
-                        >
-                          {match.markets.moneyline.away}
-                        </button>
-                      </>
-                    ) : match.sport === 'football' && match.markets['1X2'] ? (
-                      <>
-                        <button 
-                          onClick={() => handleBetClick(match, 'home')}
-                          className={`px-4 py-2 min-w-[60px] rounded-lg transition-all text-sm font-bold ${
-                            isBetSelected(`sport-${match.id}`, 'home')
-                              ? 'bg-[#00ff87] text-[#0a1a1f]'
-                              : 'bg-[#1a1a2e] text-white hover:bg-[#00ff87]/20 hover:text-[#00ff87] border border-white/10'
-                          }`}
-                        >
-                          {match.markets['1X2'].home}
-                        </button>
-                        <button 
-                          onClick={() => handleBetClick(match, 'draw')}
-                          className={`px-4 py-2 min-w-[60px] rounded-lg transition-all text-sm font-bold ${
-                            isBetSelected(`sport-${match.id}`, 'draw')
-                              ? 'bg-[#00ff87] text-[#0a1a1f]'
-                              : 'bg-[#1a1a2e] text-white hover:bg-[#00ff87]/20 hover:text-[#00ff87] border border-white/10'
-                          }`}
-                        >
-                          {match.markets['1X2'].draw}
-                        </button>
-                        <button 
-                          onClick={() => handleBetClick(match, 'away')}
-                          className={`px-4 py-2 min-w-[60px] rounded-lg transition-all text-sm font-bold ${
-                            isBetSelected(`sport-${match.id}`, 'away')
-                              ? 'bg-[#00ff87] text-[#0a1a1f]'
-                              : 'bg-[#1a1a2e] text-white hover:bg-[#00ff87]/20 hover:text-[#00ff87] border border-white/10'
-                          }`}
-                        >
-                          {match.markets['1X2'].away}
-                        </button>
-                      </>
-                    ) : null}
-                  </div>
                 </div>
+                
+                {/* Expanded Markets - Renders as separate card below */}
+                {expandedMatch === match.id && (
+                  <ExpandableBettingMarketsV2 
+                    event={match} 
+                    matchId={`sport-${match.id}`}
+                    isExpanded={true}
+                    onToggle={() => setExpandedMatch(null)}
+                  />
+                )}
               </div>
             ))}
           </div>

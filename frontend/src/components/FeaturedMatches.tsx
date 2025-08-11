@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useBets } from '@/contexts/BetContext';
 import { oddsApi, Event } from '@/services/oddsApi';
+import ExpandableBettingMarketsV2 from '@/components/ExpandableBettingMarketsV2';
 
 export default function FeaturedMatches() {
   const { addBet, isBetSelected } = useBets();
   const [featuredMatch, setFeaturedMatch] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     const fetchFeaturedMatch = async () => {
@@ -151,6 +153,22 @@ export default function FeaturedMatches() {
                     <div className="text-xs opacity-70 mb-1">2</div>
                     <div className="font-bold">{featuredMatch.markets['1X2'].away}</div>
                   </button>
+                  
+                  {/* Expandable Markets Button */}
+                  <button
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className="flex items-center gap-2 px-6 py-3 bg-[#232438] text-[#00ff87] rounded-lg border border-[#00ff87]/30 hover:bg-[#2a2b3f] transition-all"
+                  >
+                    <span>+157</span>
+                    <svg 
+                      className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
                 </div>
               )}
             </div>
@@ -171,6 +189,18 @@ export default function FeaturedMatches() {
             </div>
           </div>
         </div>
+        
+        {/* Expanded Markets - Renders as separate card below the featured match */}
+        {isExpanded && (
+          <div className="mt-6">
+            <ExpandableBettingMarketsV2 
+              event={featuredMatch} 
+              matchId={`featured-${featuredMatch.id}`}
+              isExpanded={true}
+              onToggle={() => setIsExpanded(false)}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
