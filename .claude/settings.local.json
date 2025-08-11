@@ -33,7 +33,8 @@
       "Bash(grep:*)",
       "Bash(cat:*)",
       "Bash(npx tsc:*)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": []
   }

@@ -271,12 +271,12 @@ export default function BasketballPage() {
                       if (additionalMarkets > 0) {
                         return (
                           <button
-                            onClick={() => setExpandedMatch(expandedMatch === match.id ? null : match.id)}
+                            onClick={() => setExpandedMatch(expandedMatch === String(match.id) ? null : String(match.id))}
                             className="flex items-center gap-2 px-4 py-2 bg-[#1a1a2e] text-[#00ff87] rounded-lg hover:bg-[#00ff87]/20 transition-all text-sm font-bold border border-[#00ff87]/30 ml-2"
                           >
                             <span>+{additionalMarkets}</span>
                             <svg 
-                              className={`w-4 h-4 transition-transform ${expandedMatch === match.id ? 'rotate-180' : ''}`}
+                              className={`w-4 h-4 transition-transform ${expandedMatch === String(match.id) ? 'rotate-180' : ''}`}
                               fill="none" 
                               stroke="currentColor" 
                               viewBox="0 0 24 24"
@@ -293,7 +293,7 @@ export default function BasketballPage() {
                 </div>
                 
                 {/* Expanded Markets - Renders as separate card below */}
-                {expandedMatch === match.id && (
+                {expandedMatch === String(match.id) && (
                   <ExpandableBettingMarketsV2 
                     event={match} 
                     matchId={`basketball-${match.id}`}

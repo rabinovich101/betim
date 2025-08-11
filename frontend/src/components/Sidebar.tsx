@@ -61,31 +61,37 @@ const Sidebar = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Main navigation sections
   const navItems: NavItem[] = [
-    { id: 'sports', label: 'Sports', icon: '⚽', href: '/sports' },
-    { id: 'live', label: 'Live', icon: '🔴', href: '/live', badge: liveCount > 0 ? String(liveCount) : undefined, highlight: liveCount > 0 },
     { id: 'casino', label: 'Casino', icon: '🎰', href: '/casino' },
-    { id: 'esports', label: 'Esports', icon: '🎮', href: '/esports' },
-    { id: 'virtuals', label: 'Virtuals', icon: '🏃', href: '/virtuals' },
+    { id: 'live-casino', label: 'Live Casino', icon: '🎲', href: '/live-casino' },
+    { id: 'sports', label: 'Sports', icon: '⚽', href: '/sports' },
+  ];
+
+  // GET YOUR GOODIES section
+  const promotionalItems: NavItem[] = [
     { id: 'promotions', label: 'Promotions', icon: '🎁', href: '/promotions' },
+    { id: 'btc-weekly', label: '1 BTC Weekly Tournament', icon: '🪙', href: '/tournaments/btc-weekly', badge: '06:04:52:17' },
+    { id: 'daily-race', label: '1k Daily Race', icon: '🏆', href: '/tournaments/daily-race', badge: '04:52:17' },
+    { id: 'betim-club', label: 'Betim Club', icon: '💎', href: '/club' },
+  ];
+
+  // WE ARE HERE FOR YOU section
+  const supportItems = [
+    { id: 'support', label: 'Support Chat', icon: '💬' },
+    { id: 'download', label: 'Download our App', icon: '📱' },
   ];
 
   const sportsCategories: SportItem[] = [
-    { id: 'football', label: 'Football (Soccer)', icon: '⚽', href: '/sports/football', count: 145 },
-    { id: 'american-football', label: 'American Football', icon: '🏈', href: '/sports/american-football', count: 87 },
+    { id: 'football', label: 'Football', icon: '⚽', href: '/sports/football', count: 145 },
     { id: 'basketball', label: 'Basketball', icon: '🏀', href: '/sports/basketball', count: 112 },
     { id: 'tennis', label: 'Tennis', icon: '🎾', href: '/sports/tennis', count: 98 },
-    { id: 'horse-racing', label: 'Horse Racing', icon: '🏇', href: '/sports/horse-racing', count: 56 },
-    { id: 'cricket', label: 'Cricket', icon: '🏏', href: '/sports/cricket', count: 43 },
+    { id: 'american-football', label: 'American Football', icon: '🏈', href: '/sports/american-football', count: 87 },
+    { id: 'ice-hockey', label: 'Ice Hockey', icon: '🏒', href: '/sports/ice-hockey', count: 76 },
     { id: 'baseball', label: 'Baseball', icon: '⚾', href: '/sports/baseball', count: 67 },
-    { id: 'golf', label: 'Golf', icon: '⛳', href: '/sports/golf', count: 34 },
-    { id: 'boxing-mma', label: 'Boxing/MMA', icon: '🥊', href: '/sports/boxing-mma', count: 29 },
-  ];
-
-  const quickBets = [
-    { id: 'popular', label: 'Popular', icon: '🔥' },
-    { id: 'my-bets', label: 'My Bets', icon: '📝' },
-    { id: 'statistics', label: 'Statistics', icon: '📊' },
+    { id: 'volleyball', label: 'Volleyball', icon: '🏐', href: '/sports/volleyball', count: 54 },
+    { id: 'handball', label: 'Handball', icon: '🤾', href: '/sports/handball', count: 43 },
+    { id: 'boxing', label: 'Boxing / MMA', icon: '🥊', href: '/sports/boxing-mma', count: 29 },
   ];
 
   const isActive = (href: string) => pathname === href;
@@ -228,15 +234,10 @@ const Sidebar = () => {
                     )}
                   </span>
                   
-                  {/* Label and badge - Always visible on desktop, hidden on mobile when collapsed */}
+                  {/* Label - Always visible on desktop, hidden on mobile when collapsed */}
                   <span className={`font-medium tracking-wide ${isCollapsed ? 'hidden lg:inline' : ''}`}>
                     {item.label}
                   </span>
-                  {item.badge && (
-                    <span className={`ml-auto bg-gradient-to-r from-[#ff4757] to-[#ff6b7a] text-white text-xs px-2 py-1 rounded-full font-bold shadow-lg ${isCollapsed ? 'hidden lg:inline-block' : ''}`}>
-                      {item.badge}
-                    </span>
-                  )}
                   
                   {/* Hover glow effect */}
                   {!isActive(item.href) && (
@@ -247,41 +248,8 @@ const Sidebar = () => {
             </div>
           )}
 
-          {/* Separator - Always visible on desktop */}
-          <div className={`my-6 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent ${isCollapsed ? 'hidden lg:block' : ''}`}></div>
-
-          {/* Quick Access Section - Always visible on desktop */}
-          <div className={`mt-6 ${isCollapsed ? 'hidden lg:block' : ''}`}>
-            <h3 className="text-xs font-bold text-[#a0a0b8] uppercase tracking-wider px-4 mb-3">Quick Access</h3>
-            <div className="space-y-1">
-              {quickBets.map((item) => (
-                <button
-                  key={item.id}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[#a0a0b8] hover:text-white hover:bg-white/5 transition-all duration-200 group"
-                >
-                  <span className="text-lg opacity-70 group-hover:opacity-100 transition-opacity">{item.icon}</span>
-                  <span className="text-sm font-medium">{item.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
         </nav>
 
-        {/* Bottom Section */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/5 bg-gradient-to-t from-[#0a1a1f] to-transparent">
-          {/* Issues Indicator */}
-          <div className={`flex items-center gap-2 px-3 py-2 bg-[#ff4757]/10 border border-[#ff4757]/20 rounded-lg ${isCollapsed ? 'hidden lg:flex' : ''}`}>
-            <div className="w-6 h-6 bg-[#ff4757] rounded-full flex items-center justify-center text-white text-xs font-bold">
-              !
-            </div>
-            <span className="text-sm text-[#ff4757]">1 Issue</span>
-            <button className="ml-auto text-[#ff4757] hover:text-[#ff6b7a] transition-colors">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
       </aside>
 
       {/* Mobile Menu Toggle Button */}
