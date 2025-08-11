@@ -1,23 +1,66 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useBets } from '@/contexts/BetContext';
+import { oddsApi, Event } from '@/services/oddsApi';
 
 export default function FeaturedMatches() {
   const { addBet, isBetSelected } = useBets();
+  const [featuredMatch, setFeaturedMatch] = useState<Event | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchFeaturedMatch = async () => {
+      setLoading(true);
+      try {
+        const featured = await oddsApi.getFeaturedEvents();
+        // Get the first football match from featured events
+        const footballMatch = featured.find(e => e.sport === 'football') || featured[0];
+        setFeaturedMatch(footballMatch);
+      } catch (error) {
+        console.error('Error fetching featured match:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeaturedMatch();
+  }, []);
 
   const handleBetClick = (type: 'home' | 'draw' | 'away') => {
-    const odds = type === 'home' ? 1.90 : type === 'draw' ? 3.40 : 3.80;
-    const selection = type === 'home' ? 'Liverpool' : type === 'away' ? 'Arsenal' : 'Draw';
+    if (!featuredMatch || !featuredMatch.markets['1X2']) return;
+    
+    const odds = featuredMatch.markets['1X2'][type];
+    const selection = type === 'home' 
+      ? featuredMatch.homeTeam 
+      : type === 'away' 
+      ? featuredMatch.awayTeam 
+      : 'Draw';
     
     addBet({
-      id: `featured-${type}`,
-      matchId: 'featured',
-      selection,
+      id: `featured-${featuredMatch.id}-${type}`,
+      matchId: `featured-${featuredMatch.id}`,
+      selection: selection || '',
       type,
       odds,
-      teams: 'Liverpool vs Arsenal',
+      teams: `${featuredMatch.homeTeam} vs ${featuredMatch.awayTeam}`,
       sport: 'football'
     });
+  };
+
+  if (loading) {
+    return null; // Don't show anything while loading
+  }
+
+  if (!featuredMatch || featuredMatch.sport !== 'football') {
+    return null;
+  }
+
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
   };
 
   return (
@@ -38,17 +81,33 @@ export default function FeaturedMatches() {
                 ⚽
               </div>
               <h3 className="text-xl md:text-2xl font-bold text-white uppercase tracking-wide">
-                Liverpool
+                {featuredMatch.homeTeam}
               </h3>
+              {featuredMatch.isLive && featuredMatch.homeScore !== null && (
+                <div className="text-3xl font-bold text-[#00ff87] mt-2">
+                  {featuredMatch.homeScore}
+                </div>
+              )}
             </div>
 
             {/* Match Info */}
             <div className="flex-1 text-center">
               <div className="text-sm text-[#a0a0b8] font-semibold mb-2">
-                TODAY 19:00
+                {featuredMatch.isLive ? (
+                  <span className="text-[#ff4757]">LIVE {featuredMatch.minute}'</span>
+                ) : (
+                  `TODAY ${formatTime(featuredMatch.startTime)}`
+                )}
               </div>
-              <div className="text-3xl md:text-4xl font-bold text-white mb-6 uppercase">
-                Liverpool
+              <div className="text-lg font-semibold text-[#00ff87] mb-2">
+                {featuredMatch.league}
+              </div>
+              <div className="text-2xl md:text-3xl font-bold text-white mb-6">
+                {featuredMatch.isLive && featuredMatch.homeScore !== null && featuredMatch.awayScore !== null ? (
+                  <span>{featuredMatch.homeScore} - {featuredMatch.awayScore}</span>
+                ) : (
+                  'VS'
+                )}
               </div>
               
               {/* Bet Now Button */}
@@ -57,41 +116,43 @@ export default function FeaturedMatches() {
               </button>
 
               {/* Odds Buttons */}
-              <div className="flex justify-center gap-4 mt-6">
-                <button 
-                  onClick={() => handleBetClick('home')}
-                  className={`px-6 py-3 rounded-lg border transition-all duration-200 ${
-                    isBetSelected('featured', 'home') 
-                      ? 'bg-[#00ff87] border-[#00ff87] text-[#0a1a1f]' 
-                      : 'bg-[#232438] border-white/10 hover:border-[#00ff87] hover:bg-[#2a2b3f] text-white'
-                  }`}
-                >
-                  <div className="text-xs opacity-70 mb-1">1</div>
-                  <div className="font-bold">1.90</div>
-                </button>
-                <button 
-                  onClick={() => handleBetClick('draw')}
-                  className={`px-6 py-3 rounded-lg border transition-all duration-200 ${
-                    isBetSelected('featured', 'draw') 
-                      ? 'bg-[#00ff87] border-[#00ff87] text-[#0a1a1f]' 
-                      : 'bg-[#232438] border-white/10 hover:border-[#00ff87] hover:bg-[#2a2b3f] text-white'
-                  }`}
-                >
-                  <div className="text-xs opacity-70 mb-1">X</div>
-                  <div className="font-bold">3.40</div>
-                </button>
-                <button 
-                  onClick={() => handleBetClick('away')}
-                  className={`px-6 py-3 rounded-lg border transition-all duration-200 ${
-                    isBetSelected('featured', 'away') 
-                      ? 'bg-[#00ff87] border-[#00ff87] text-[#0a1a1f]' 
-                      : 'bg-[#232438] border-white/10 hover:border-[#00ff87] hover:bg-[#2a2b3f] text-white'
-                  }`}
-                >
-                  <div className="text-xs opacity-70 mb-1">2</div>
-                  <div className="font-bold">3.80</div>
-                </button>
-              </div>
+              {featuredMatch.markets['1X2'] && (
+                <div className="flex justify-center gap-4 mt-6">
+                  <button 
+                    onClick={() => handleBetClick('home')}
+                    className={`px-6 py-3 rounded-lg border transition-all duration-200 ${
+                      isBetSelected(`featured-${featuredMatch.id}`, 'home') 
+                        ? 'bg-[#00ff87] border-[#00ff87] text-[#0a1a1f]' 
+                        : 'bg-[#232438] border-white/10 hover:border-[#00ff87] hover:bg-[#2a2b3f] text-white'
+                    }`}
+                  >
+                    <div className="text-xs opacity-70 mb-1">1</div>
+                    <div className="font-bold">{featuredMatch.markets['1X2'].home}</div>
+                  </button>
+                  <button 
+                    onClick={() => handleBetClick('draw')}
+                    className={`px-6 py-3 rounded-lg border transition-all duration-200 ${
+                      isBetSelected(`featured-${featuredMatch.id}`, 'draw') 
+                        ? 'bg-[#00ff87] border-[#00ff87] text-[#0a1a1f]' 
+                        : 'bg-[#232438] border-white/10 hover:border-[#00ff87] hover:bg-[#2a2b3f] text-white'
+                    }`}
+                  >
+                    <div className="text-xs opacity-70 mb-1">X</div>
+                    <div className="font-bold">{featuredMatch.markets['1X2'].draw}</div>
+                  </button>
+                  <button 
+                    onClick={() => handleBetClick('away')}
+                    className={`px-6 py-3 rounded-lg border transition-all duration-200 ${
+                      isBetSelected(`featured-${featuredMatch.id}`, 'away') 
+                        ? 'bg-[#00ff87] border-[#00ff87] text-[#0a1a1f]' 
+                        : 'bg-[#232438] border-white/10 hover:border-[#00ff87] hover:bg-[#2a2b3f] text-white'
+                    }`}
+                  >
+                    <div className="text-xs opacity-70 mb-1">2</div>
+                    <div className="font-bold">{featuredMatch.markets['1X2'].away}</div>
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Away Team */}
@@ -100,8 +161,13 @@ export default function FeaturedMatches() {
                 ⚽
               </div>
               <h3 className="text-xl md:text-2xl font-bold text-white uppercase tracking-wide">
-                Arsenal
+                {featuredMatch.awayTeam}
               </h3>
+              {featuredMatch.isLive && featuredMatch.awayScore !== null && (
+                <div className="text-3xl font-bold text-[#00ff87] mt-2">
+                  {featuredMatch.awayScore}
+                </div>
+              )}
             </div>
           </div>
         </div>

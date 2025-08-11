@@ -1,258 +1,288 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useBets } from '@/contexts/BetContext';
-
-interface Match {
-  id: string;
-  teams: string;
-  time: string;
-  odds: {
-    home: number;
-    draw: number;
-    away: number;
-  };
-  icon: string;
-  sport: 'football' | 'basketball' | 'tennis' | 'baseball';
-}
+import { oddsApi, Event } from '@/services/oddsApi';
 
 export default function UpcomingLive() {
   const [displayCount, setDisplayCount] = useState(5);
   const [isLoading, setIsLoading] = useState(false);
+  const [matches, setMatches] = useState<Event[]>([]);
   const { addBet, isBetSelected } = useBets();
 
-  const allMatches: Match[] = [
-    {
-      id: '1',
-      teams: 'Liverpool\nArsenal',
-      time: '18:00',
-      odds: { home: 1.90, draw: 3.60, away: 4.20 },
-      icon: '⚽',
-      sport: 'football'
-    },
-    {
-      id: '2',
-      teams: 'Real Madrid\nBarcelona',
-      time: '20:00',
-      odds: { home: 1.96, draw: 3.60, away: 3.90 },
-      icon: '⚽',
-      sport: 'football'
-    },
-    {
-      id: '3',
-      teams: 'Golden State\nLos Angeles',
-      time: '20:30',
-      odds: { home: 2.40, draw: 3.30, away: 4.10 },
-      icon: '🏀',
-      sport: 'basketball'
-    },
-    {
-      id: '4',
-      teams: 'Tsitsipas\nDjokovic',
-      time: '21:00',
-      odds: { home: 2.10, draw: 3.50, away: 4.30 },
-      icon: '🎾',
-      sport: 'tennis'
-    },
-    {
-      id: '5',
-      teams: 'New York Yankees\nChicago Cubs',
-      time: '21:30',
-      odds: { home: 1.80, draw: 3.60, away: 4.40 },
-      icon: '⚾',
-      sport: 'baseball'
-    },
-    {
-      id: '6',
-      teams: 'Manchester United\nManchester City',
-      time: '22:00',
-      odds: { home: 2.80, draw: 3.40, away: 2.50 },
-      icon: '⚽',
-      sport: 'football'
-    },
-    {
-      id: '7',
-      teams: 'Lakers\nCeltics',
-      time: '22:30',
-      odds: { home: 1.95, draw: 3.50, away: 3.80 },
-      icon: '🏀',
-      sport: 'basketball'
-    },
-    {
-      id: '8',
-      teams: 'Nadal\nFederer',
-      time: '23:00',
-      odds: { home: 1.85, draw: 3.60, away: 4.20 },
-      icon: '🎾',
-      sport: 'tennis'
-    },
-    {
-      id: '9',
-      teams: 'PSG\nBayern Munich',
-      time: '23:30',
-      odds: { home: 2.20, draw: 3.30, away: 3.10 },
-      icon: '⚽',
-      sport: 'football'
-    },
-    {
-      id: '10',
-      teams: 'Boston Red Sox\nLA Dodgers',
-      time: '00:00',
-      odds: { home: 2.10, draw: 3.40, away: 3.50 },
-      icon: '⚾',
-      sport: 'baseball'
-    },
-    {
-      id: '11',
-      teams: 'Inter Milan\nAC Milan',
-      time: '00:30',
-      odds: { home: 2.30, draw: 3.20, away: 3.00 },
-      icon: '⚽',
-      sport: 'football'
-    },
-    {
-      id: '12',
-      teams: 'Warriors\nNets',
-      time: '01:00',
-      odds: { home: 1.75, draw: 3.80, away: 4.50 },
-      icon: '🏀',
-      sport: 'basketball'
+  useEffect(() => {
+    const fetchMatches = async () => {
+      setIsLoading(true);
+      try {
+        const liveEvents = await oddsApi.getLiveEvents();
+        // Take first 12 live events
+        setMatches(liveEvents.slice(0, 12));
+      } catch (error) {
+        console.error('Error fetching live events:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMatches();
+  }, []);
+
+  const handleBetClick = (matchId: string, event: Event, betType: 'home' | 'draw' | 'away' | '1' | '2') => {
+    let odds = 0;
+    let selection = '';
+    let type = betType;
+
+    if (event.sport === 'football' && event.markets['1X2']) {
+      if (betType === 'home' || betType === '1') {
+        odds = event.markets['1X2'].home;
+        selection = event.homeTeam || '';
+        type = 'home';
+      } else if (betType === 'draw') {
+        odds = event.markets['1X2'].draw;
+        selection = 'Draw';
+      } else if (betType === 'away' || betType === '2') {
+        odds = event.markets['1X2'].away;
+        selection = event.awayTeam || '';
+        type = 'away';
+      }
+    } else if (event.sport === 'tennis' && event.markets['matchWinner']) {
+      if (betType === '1') {
+        odds = event.markets['matchWinner'].player1;
+        selection = event.player1 || '';
+      } else if (betType === '2') {
+        odds = event.markets['matchWinner'].player2;
+        selection = event.player2 || '';
+      }
+    } else if (event.sport === 'basketball' && event.markets['moneyline']) {
+      if (betType === '1') {
+        odds = event.markets['moneyline'].home;
+        selection = event.homeTeam || '';
+      } else if (betType === '2') {
+        odds = event.markets['moneyline'].away;
+        selection = event.awayTeam || '';
+      }
     }
-  ];
 
-  const matches = allMatches.slice(0, displayCount);
+    if (odds > 0 && selection) {
+      const teams = event.sport === 'tennis' 
+        ? `${event.player1} vs ${event.player2}`
+        : `${event.homeTeam} vs ${event.awayTeam}`;
 
-  const loadMore = () => {
+      addBet({
+        id: `${matchId}-${type}`,
+        matchId,
+        selection,
+        type,
+        odds,
+        teams,
+        sport: event.sport
+      });
+    }
+  };
+
+  const loadMoreMatches = () => {
     setIsLoading(true);
-    // Simulate loading delay
     setTimeout(() => {
-      setDisplayCount(prev => Math.min(prev + 5, allMatches.length));
+      setDisplayCount(prev => Math.min(prev + 5, matches.length));
       setIsLoading(false);
     }, 500);
   };
 
-  const handleBetClick = (match: Match, type: 'home' | 'draw' | 'away') => {
-    const teams = match.teams.split('\n');
-    const selection = type === 'home' ? teams[0] : type === 'away' ? teams[1] : 'Draw';
-    
-    addBet({
-      id: `${match.id}-${type}`,
-      matchId: match.id,
-      selection,
-      type,
-      odds: match.odds[type],
-      teams: match.teams.replace('\n', ' vs '),
-      sport: match.sport
-    });
+  const displayedMatches = matches.slice(0, displayCount);
+
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
   };
 
-  const getSportColor = (sport: string) => {
+  const getSportIcon = (sport: string) => {
     switch(sport) {
-      case 'football': return 'from-[#2563eb] to-[#1e40af]';
-      case 'basketball': return 'from-[#ea580c] to-[#c2410c]';
-      case 'tennis': return 'from-[#84cc16] to-[#65a30d]';
-      case 'baseball': return 'from-[#6b7280] to-[#4b5563]';
-      default: return 'from-[#2563eb] to-[#1e40af]';
+      case 'football': return '⚽';
+      case 'basketball': return '🏀';
+      case 'tennis': return '🎾';
+      case 'baseball': return '⚾';
+      default: return '🏆';
     }
   };
+
+  if (matches.length === 0 && !isLoading) {
+    return (
+      <div className="w-[80%] mx-auto mt-12">
+        <h2 className="text-2xl font-bold text-white mb-6">UPCOMING LIVE</h2>
+        <div className="bg-gradient-to-br from-[#1a2c38] via-[#0f2027] to-[#1a2c38] rounded-xl p-8">
+          <p className="text-center text-[#a0a0b8]">No live matches at the moment</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-[80%] mx-auto mt-12">
       <h2 className="text-2xl font-bold text-white mb-6">UPCOMING LIVE</h2>
       
-      <div className="bg-gradient-to-br from-[#1a2c38]/60 via-[#0f2027]/60 to-[#1a2c38]/60 rounded-2xl p-6 backdrop-blur-sm border border-white/5">
-        <div className="space-y-4">
-          {matches.map((match) => (
+      <div className="bg-gradient-to-br from-[#1a2c38] via-[#0f2027] to-[#1a2c38] rounded-xl p-6">
+        <div className="space-y-2">
+          {displayedMatches.map((event) => (
             <div 
-              key={match.id}
-              className="flex items-center justify-between p-4 bg-[#0a1a1f]/50 rounded-xl border border-white/5 hover:border-white/10 transition-all duration-200 group hover:bg-[#0a1a1f]/70"
+              key={event.id}
+              className="flex items-center justify-between p-4 bg-[#0f1923]/50 hover:bg-[#0f1923]/70 rounded-lg transition-all duration-200 border border-white/5 hover:border-[#00ff87]/20"
             >
-              {/* Sport Icon */}
-              <div className="flex items-center gap-4">
-                <div className={`w-12 h-12 bg-gradient-to-br ${getSportColor(match.sport)} rounded-full flex items-center justify-center text-2xl shadow-lg`}>
-                  {match.icon}
-                </div>
+              <div className="flex items-center gap-4 flex-1">
+                {/* Sport Icon */}
+                <div className="text-2xl">{getSportIcon(event.sport)}</div>
                 
-                {/* Teams */}
+                {/* Teams/Players */}
                 <div className="text-white">
-                  {match.teams.split('\n').map((team, index) => (
-                    <div key={index} className={`font-medium ${index === 0 ? '' : 'text-sm opacity-90'}`}>
-                      {team}
+                  {event.sport === 'tennis' ? (
+                    <div className="space-y-1">
+                      <div>{event.player1}</div>
+                      <div>{event.player2}</div>
                     </div>
-                  ))}
+                  ) : (
+                    <div className="space-y-1">
+                      <div>{event.homeTeam}</div>
+                      <div>{event.awayTeam}</div>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Time and Odds */}
-              <div className="flex items-center gap-6">
-                {/* Time */}
-                <div className="text-[#a0a0b8] font-medium">
-                  {match.time}
-                </div>
+              {/* Time/Status and Score */}
+              <div className="px-4 text-center">
+                {event.isLive ? (
+                  <div>
+                    <div className="text-[#ff4757] font-bold text-xs mb-1">LIVE</div>
+                    {event.sport === 'football' && event.minute && (
+                      <div className="text-white text-sm">{event.minute}'</div>
+                    )}
+                    {event.sport === 'basketball' && event.quarter && (
+                      <div className="text-white text-sm">Q{event.quarter}</div>
+                    )}
+                    {event.sport === 'tennis' && event.currentSet && (
+                      <div className="text-white text-sm">Set {event.currentSet}</div>
+                    )}
+                    {event.homeScore !== undefined && event.awayScore !== undefined && (
+                      <div className="text-[#00ff87] font-bold">
+                        {event.homeScore} - {event.awayScore}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-[#a0a0b8] text-sm">
+                    {formatTime(event.startTime)}
+                  </div>
+                )}
+              </div>
 
-                {/* Odds */}
-                <div className="flex gap-3">
-                  <button 
-                    onClick={() => handleBetClick(match, 'home')}
-                    className={`px-4 py-2 rounded-lg border transition-all duration-200 min-w-[65px] ${
-                      isBetSelected(match.id, 'home') 
-                        ? 'bg-[#00ff87] border-[#00ff87] text-[#0a1a1f]' 
-                        : 'bg-[#232438] border-white/10 hover:border-[#00ff87] hover:bg-[#2a2b3f] text-white'
-                    }`}
-                  >
-                    <span className="font-bold">{match.odds.home.toFixed(2)}</span>
-                  </button>
-                  <button 
-                    onClick={() => handleBetClick(match, 'draw')}
-                    className={`px-4 py-2 rounded-lg border transition-all duration-200 min-w-[65px] ${
-                      isBetSelected(match.id, 'draw') 
-                        ? 'bg-[#00ff87] border-[#00ff87] text-[#0a1a1f]' 
-                        : 'bg-[#232438] border-white/10 hover:border-[#00ff87] hover:bg-[#2a2b3f] text-white'
-                    }`}
-                  >
-                    <span className="font-bold">{match.odds.draw.toFixed(2)}</span>
-                  </button>
-                  <button 
-                    onClick={() => handleBetClick(match, 'away')}
-                    className={`px-4 py-2 rounded-lg border transition-all duration-200 min-w-[65px] ${
-                      isBetSelected(match.id, 'away') 
-                        ? 'bg-[#00ff87] border-[#00ff87] text-[#0a1a1f]' 
-                        : 'bg-[#232438] border-white/10 hover:border-[#00ff87] hover:bg-[#2a2b3f] text-white'
-                    }`}
-                  >
-                    <span className="font-bold">{match.odds.away.toFixed(2)}</span>
-                  </button>
-                </div>
+              {/* Odds Buttons */}
+              <div className="flex gap-2">
+                {event.sport === 'football' && event.markets['1X2'] ? (
+                  <>
+                    <button 
+                      onClick={() => handleBetClick(`match-${event.id}`, event, 'home')}
+                      className={`px-4 py-2 min-w-[60px] rounded-lg transition-all duration-200 ${
+                        isBetSelected(`match-${event.id}`, 'home')
+                          ? 'bg-[#00ff87] text-[#0a1a1f] font-bold'
+                          : 'bg-[#232438] text-white hover:bg-[#2a2b3f] border border-white/10 hover:border-[#00ff87]/30'
+                      }`}
+                    >
+                      {event.markets['1X2'].home}
+                    </button>
+                    <button 
+                      onClick={() => handleBetClick(`match-${event.id}`, event, 'draw')}
+                      className={`px-4 py-2 min-w-[60px] rounded-lg transition-all duration-200 ${
+                        isBetSelected(`match-${event.id}`, 'draw')
+                          ? 'bg-[#00ff87] text-[#0a1a1f] font-bold'
+                          : 'bg-[#232438] text-white hover:bg-[#2a2b3f] border border-white/10 hover:border-[#00ff87]/30'
+                      }`}
+                    >
+                      {event.markets['1X2'].draw}
+                    </button>
+                    <button 
+                      onClick={() => handleBetClick(`match-${event.id}`, event, 'away')}
+                      className={`px-4 py-2 min-w-[60px] rounded-lg transition-all duration-200 ${
+                        isBetSelected(`match-${event.id}`, 'away')
+                          ? 'bg-[#00ff87] text-[#0a1a1f] font-bold'
+                          : 'bg-[#232438] text-white hover:bg-[#2a2b3f] border border-white/10 hover:border-[#00ff87]/30'
+                      }`}
+                    >
+                      {event.markets['1X2'].away}
+                    </button>
+                  </>
+                ) : event.sport === 'tennis' && event.markets['matchWinner'] ? (
+                  <>
+                    <button 
+                      onClick={() => handleBetClick(`match-${event.id}`, event, '1')}
+                      className={`px-4 py-2 min-w-[60px] rounded-lg transition-all duration-200 ${
+                        isBetSelected(`match-${event.id}`, '1')
+                          ? 'bg-[#00ff87] text-[#0a1a1f] font-bold'
+                          : 'bg-[#232438] text-white hover:bg-[#2a2b3f] border border-white/10 hover:border-[#00ff87]/30'
+                      }`}
+                    >
+                      {event.markets['matchWinner'].player1}
+                    </button>
+                    <button 
+                      onClick={() => handleBetClick(`match-${event.id}`, event, '2')}
+                      className={`px-4 py-2 min-w-[60px] rounded-lg transition-all duration-200 ${
+                        isBetSelected(`match-${event.id}`, '2')
+                          ? 'bg-[#00ff87] text-[#0a1a1f] font-bold'
+                          : 'bg-[#232438] text-white hover:bg-[#2a2b3f] border border-white/10 hover:border-[#00ff87]/30'
+                      }`}
+                    >
+                      {event.markets['matchWinner'].player2}
+                    </button>
+                  </>
+                ) : event.sport === 'basketball' && event.markets['moneyline'] ? (
+                  <>
+                    <button 
+                      onClick={() => handleBetClick(`match-${event.id}`, event, '1')}
+                      className={`px-4 py-2 min-w-[60px] rounded-lg transition-all duration-200 ${
+                        isBetSelected(`match-${event.id}`, '1')
+                          ? 'bg-[#00ff87] text-[#0a1a1f] font-bold'
+                          : 'bg-[#232438] text-white hover:bg-[#2a2b3f] border border-white/10 hover:border-[#00ff87]/30'
+                      }`}
+                    >
+                      {event.markets['moneyline'].home}
+                    </button>
+                    <button 
+                      onClick={() => handleBetClick(`match-${event.id}`, event, '2')}
+                      className={`px-4 py-2 min-w-[60px] rounded-lg transition-all duration-200 ${
+                        isBetSelected(`match-${event.id}`, '2')
+                          ? 'bg-[#00ff87] text-[#0a1a1f] font-bold'
+                          : 'bg-[#232438] text-white hover:bg-[#2a2b3f] border border-white/10 hover:border-[#00ff87]/30'
+                      }`}
+                    >
+                      {event.markets['moneyline'].away}
+                    </button>
+                  </>
+                ) : null}
               </div>
             </div>
           ))}
         </div>
 
         {/* Load More Button */}
-        {displayCount < allMatches.length && (
+        {displayCount < matches.length && (
           <div className="mt-6 text-center">
-            <button
-              onClick={loadMore}
+            <button 
+              onClick={loadMoreMatches}
               disabled={isLoading}
-              className="px-8 py-3 bg-gradient-to-r from-[#232438] to-[#1a1a2e] border border-white/10 rounded-xl text-white font-medium hover:border-[#00ff87] hover:from-[#2a2b3f] hover:to-[#1f1f33] transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-8 py-3 bg-gradient-to-r from-[#00ff87] to-[#00d68f] text-[#0a1a1f] font-bold rounded-xl hover:shadow-lg hover:shadow-[#00ff87]/30 transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  <span>Loading...</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
+                <>
                   <span>Load More Games</span>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
-                </div>
-              )}
+                </>
+              </div>
             </button>
-            <div className="mt-2 text-sm text-[#a0a0b8]">
-              Showing {matches.length} of {allMatches.length} matches
-            </div>
+            <p className="text-sm text-[#a0a0b8] mt-2">
+              Showing {displayedMatches.length} of {matches.length} matches
+            </p>
           </div>
         )}
       </div>

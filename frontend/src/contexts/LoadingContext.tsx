@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect, useRef } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import TopLoadingBar from '@/components/TopLoadingBar';
@@ -23,33 +23,39 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
   const [loadingStyle, setLoadingStyle] = useState<LoadingStyle>('top-bar');
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const loadingCountRef = useRef(0);
 
-  // Detect route changes
+  // Detect route changes for top-bar loading only
   useEffect(() => {
-    // Start loading when route changes
-    setIsLoading(true);
-    
-    // Stop loading after a short delay
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 600); // Adjust timing as needed
-    
-    return () => clearTimeout(timer);
-  }, [pathname, searchParams]);
+    // Only show top-bar loading for route changes if not already loading
+    if (loadingStyle === 'top-bar' && loadingCountRef.current === 0) {
+      setIsLoading(true);
+      
+      // Stop loading after a short delay
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 300); // Shorter delay for top-bar
+      
+      return () => clearTimeout(timer);
+    }
+  }, [pathname, searchParams, loadingStyle]);
 
-  const startLoading = () => setIsLoading(true);
-  const stopLoading = () => setIsLoading(false);
+  const startLoading = () => {
+    loadingCountRef.current++;
+    setIsLoading(true);
+  };
+  
+  const stopLoading = () => {
+    loadingCountRef.current = Math.max(0, loadingCountRef.current - 1);
+    if (loadingCountRef.current === 0) {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <LoadingContext.Provider value={{ isLoading, setIsLoading, startLoading, stopLoading, loadingStyle, setLoadingStyle }}>
-      {loadingStyle === 'spinner' && isLoading && <LoadingSpinner />}
+      {/* Removed spinner, only keep top-bar */}
       {loadingStyle === 'top-bar' && <TopLoadingBar isLoading={isLoading} />}
-      {loadingStyle === 'both' && (
-        <>
-          <TopLoadingBar isLoading={isLoading} />
-          {isLoading && <LoadingSpinner />}
-        </>
-      )}
       {children}
     </LoadingContext.Provider>
   );

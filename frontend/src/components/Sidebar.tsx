@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { oddsApi } from '@/services/oddsApi';
 
 interface NavItem {
   id: string;
@@ -25,6 +26,7 @@ const Sidebar = () => {
   // Start collapsed on mobile, expanded on desktop
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [liveCount, setLiveCount] = useState(0);
   const pathname = usePathname();
 
   // Set initial state based on screen size
@@ -42,9 +44,26 @@ const Sidebar = () => {
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
+  // Fetch live count
+  useEffect(() => {
+    const fetchLiveCount = async () => {
+      try {
+        const liveEvents = await oddsApi.getLiveEvents();
+        setLiveCount(liveEvents.length);
+      } catch (error) {
+        console.error('Error fetching live count:', error);
+      }
+    };
+
+    fetchLiveCount();
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchLiveCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   const navItems: NavItem[] = [
     { id: 'sports', label: 'Sports', icon: '⚽', href: '/sports' },
-    { id: 'live', label: 'Live', icon: '🔴', href: '/live', badge: '12', highlight: true },
+    { id: 'live', label: 'Live', icon: '🔴', href: '/live', badge: liveCount > 0 ? String(liveCount) : undefined, highlight: liveCount > 0 },
     { id: 'casino', label: 'Casino', icon: '🎰', href: '/casino' },
     { id: 'esports', label: 'Esports', icon: '🎮', href: '/esports' },
     { id: 'virtuals', label: 'Virtuals', icon: '🏃', href: '/virtuals' },
