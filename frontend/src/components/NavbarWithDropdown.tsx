@@ -56,20 +56,11 @@ export default function NavbarWithDropdown() {
               <Link href="/sports" className="text-[#a0a0b8] hover:text-white transition-colors duration-200">
                 Sports
               </Link>
-              <Link href="/live" className="flex items-center space-x-1 text-[#a0a0b8] hover:text-white transition-colors duration-200">
-                <span>Live</span>
-                <div className="flex items-center space-x-1">
-                  <div className="w-2 h-2 bg-[#00ff87] rounded-full animate-pulse"></div>
-                  <span className="bg-[#ff4757] text-white text-xs px-2 py-0.5 rounded-full font-bold">
-                    23
-                  </span>
-                </div>
-              </Link>
               <Link href="/casino" className="text-[#a0a0b8] hover:text-white transition-colors duration-200">
                 Casino
               </Link>
-              <Link href="/promotions" className="text-[#a0a0b8] hover:text-white transition-colors duration-200">
-                Promotions
+              <Link href="/live-casino" className="text-[#a0a0b8] hover:text-white transition-colors duration-200">
+                Live Casino
               </Link>
             </div>
           </div>
